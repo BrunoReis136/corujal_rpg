@@ -16,25 +16,23 @@
     </div>
     <h1 class="text-2xl font-bold text-yellow-400">⚔️ Vamos pra aventura! ⚔️</h1>
     <nav>
-      <a href="{{% url_for('home') %}}" class="px-3 text-gray-300 hover:text-yellow-400">Início</a>
+      <a href="{{ url_for('home') }}" class="px-3 text-gray-300 hover:text-yellow-400">Início</a>
       <a href="#" class="px-3 text-gray-300 hover:text-yellow-400">Sobre</a>
-      <a href="{{% url_for ('logout') %}}" class="px-3 text-gray-300 hover:text-red-400">Sair</a>
+      <a href="{{ url_for ('logout') }}" class="px-3 text-gray-300 hover:text-red-400">Sair</a>
     </nav>
   </header>
 
   <!-- Mensagens -->
   {% if messages %}
-  <div class="p-4">
-    {% for message in messages %}
-      <div class="mb-2 p-3 rounded-lg 
-                  {% if message.tags == 'success' %} bg-green-700 text-white
-                  {% elif message.tags == 'error' %} bg-red-700 text-white
-                  {% else %} bg-gray-700 text-gray-200 {% endif %}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  </div>
-  {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="{% if category == 'success' %}bg-green-700{% elif category == 'danger' %}bg-red-700{% else %}bg-gray-700{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
 
   <!-- Main content -->
   <main class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-6">
@@ -64,6 +62,6 @@
 
   {% block scripts %}{% endblock %}
 
-  <script src="{{ url_for('static', filename='js/code.js') }}}"></script>
+  <script src="{{ url_for('static', filename='js/code.js') }}"></script>
 </body>
 </html>
