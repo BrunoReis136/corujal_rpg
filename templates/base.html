@@ -16,9 +16,9 @@
     </div>
     <h1 class="text-2xl font-bold text-yellow-400">⚔️ Vamos pra aventura! ⚔️</h1>
     <nav>
-      <a href="{% url 'home' %}" class="px-3 text-gray-300 hover:text-yellow-400">Início</a>
+      <a href="{% url_for('home') %}" class="px-3 text-gray-300 hover:text-yellow-400">Início</a>
       <a href="#" class="px-3 text-gray-300 hover:text-yellow-400">Sobre</a>
-      <a href="{% url 'logout' %}" class="px-3 text-gray-300 hover:text-red-400">Sair</a>
+      <a href="{% url_for ('logout') %}" class="px-3 text-gray-300 hover:text-red-400">Sair</a>
     </nav>
   </header>
 
