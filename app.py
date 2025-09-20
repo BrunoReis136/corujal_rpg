@@ -1,58 +1,40 @@
 # app.py
 import os
 from datetime import datetime
-from flask import (
-    Flask, render_template, redirect, url_for, request, flash, session, abort
-)
+from flask import Flask, render_template, redirect, url_for, request, flash, session, abort
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import (
-    LoginManager, login_user, logout_user, login_required, current_user, UserMixin
-)
-from flask_wtf import FlaskForm
-from wtforms import (
-    StringField, PasswordField, SubmitField, TextAreaField, SelectField, HiddenField
-)
-from wtforms.validators import DataRequired, Email, EqualTo, Length
-from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import URLSafeTimedSerializer
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
-from forms import LoginForm,SignupForm, AventuraForm,ForgotPasswordForm, SetPasswordForm
+from itsdangerous import URLSafeTimedSerializer
+from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPasswordForm
 from models import Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 
 # -------------------------
 # Config
 # -------------------------
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
-# Database: either Postgres via env or local sqlite
-if os.getenv("POSTGRES_HOST") and os.getenv("POSTGRES_DB"):
-    app.config["SQLALCHEMY_DATABASE_URI"] = (
-        f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
-        f"@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB')}"
-    )
-else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
-
+app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Mail
-app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
-app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", 587))
-app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "True") == "True"
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USERNAME"] = os.getenv("MAIL_USER")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASS")
-app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_FOR", app.config["MAIL_USERNAME"])
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_TO", app.config["MAIL_USERNAME"])
 
 # Token serializer for password reset
 serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 
+# -------------------------
+# Extensions
+# -------------------------
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "home"
 mail = Mail(app)
-
-
-
 
 # -------------------------
 # Login manager
@@ -62,7 +44,7 @@ def load_user(user_id):
     return Usuario.query.get(int(user_id))
 
 # -------------------------
-# Helper: password validation (simple)
+# Password validation
 # -------------------------
 COMMON_PASSWORDS = {"password", "123456", "12345678", "qwerty", "abc123"}
 
@@ -77,7 +59,7 @@ def validate_password_rules(pw):
     return errors
 
 # -------------------------
-# Views / Routes
+# Routes
 # -------------------------
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -87,10 +69,8 @@ def home():
 
     # login
     if login_form.validate_on_submit() and login_form.submit.data:
-        username = login_form.username.data
-        pw = login_form.password.data
-        user = Usuario.query.filter_by(username=username).first()
-        if user and user.check_password(pw):
+        user = Usuario.query.filter_by(username=login_form.username.data).first()
+        if user and user.check_password(login_form.password.data):
             login_user(user)
             flash(f"Bem-vindo, {user.username}!", "success")
             next_url = request.args.get("next") or url_for("lista_aventuras")
@@ -100,57 +80,22 @@ def home():
 
     # signup
     if signup_form.validate_on_submit() and signup_form.submit.data:
-        username = signup_form.username.data
-        email = signup_form.email.data
-        password1 = signup_form.password1.data
-        if Usuario.query.filter_by(username=username).first():
+        if Usuario.query.filter_by(username=signup_form.username.data).first():
             flash("Usuário já existe.", "danger")
             return redirect(url_for("home"))
-        errors = validate_password_rules(password1)
+        errors = validate_password_rules(signup_form.password1.data)
         if errors:
             for e in errors:
                 flash(e, "danger")
             return redirect(url_for("home"))
-        user = Usuario(username=username, email=email)
-        user.set_password(password1)
+        user = Usuario(username=signup_form.username.data, email=signup_form.email.data)
+        user.set_password(signup_form.password1.data)
         db.session.add(user)
         db.session.commit()
         flash("Cadastro realizado com sucesso! Faça login.", "success")
         return redirect(url_for("home"))
 
-    # forgot password (form submit separate action preferred)
     return render_template("core/home.html", login_form=login_form, signup_form=signup_form, forgot_form=forgot_form)
-
-@app.route("/login/", methods=["POST"])
-def login_route():
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = Usuario.query.filter_by(username=form.username.data).first()
-        if user and user.check_password(form.password.data):
-            login_user(user)
-            flash("Bem-vindo!", "success")
-            return redirect(url_for("lista_aventuras"))
-    flash("Usuário ou senha incorretos.", "danger")
-    return redirect(url_for("home"))
-
-@app.route("/signup/", methods=["POST"])
-def signup_route():
-    form = SignupForm()
-    if form.validate_on_submit():
-        if Usuario.query.filter_by(username=form.username.data).first():
-            flash("Usuário já existe.", "danger")
-            return redirect(url_for("home"))
-        errors = validate_password_rules(form.password1.data)
-        if errors:
-            for e in errors:
-                flash(e, "danger")
-            return redirect(url_for("home"))
-        user = Usuario(username=form.username.data, email=form.email.data)
-        user.set_password(form.password1.data)
-        db.session.add(user)
-        db.session.commit()
-        flash("Cadastro realizado com sucesso! Faça login.", "success")
-    return redirect(url_for("home"))
 
 @app.route("/logout/")
 @login_required
@@ -162,10 +107,7 @@ def logout_view():
 @app.route("/dashboard/")
 @login_required
 def dashboard():
-    narrativa = session.get("narrativa", [
-        "Bem-vindo à aventura, herói!",
-        "O mestre IA aguarda sua primeira ação."
-    ])
+    narrativa = session.get("narrativa", ["Bem-vindo à aventura, herói!", "O mestre IA aguarda sua primeira ação."])
     jogador = {"hp": 100, "mp": 50}
     turno = session.get("turno", 1)
     return render_template("core/dashboard.html", narrativa=narrativa, jogador=jogador, turno=turno)
@@ -250,7 +192,7 @@ def excluir_aventura(pk):
     return render_template("core/confirma_exclusao.html", aventura=aventura)
 
 # -------------------------
-# Password reset flow (itsdangerous token, email with link)
+# Password reset flow
 # -------------------------
 def send_password_reset_email(user):
     token = serializer.dumps(user.email, salt="password-reset-salt")
@@ -264,8 +206,7 @@ def send_password_reset_email(user):
 def forgot_password_view():
     form = ForgotPasswordForm()
     if form.validate_on_submit():
-        email = form.email.data
-        user = Usuario.query.filter_by(email=email).first()
+        user = Usuario.query.filter_by(email=form.email.data).first()
         if user:
             send_password_reset_email(user)
             flash("Link de redefinição enviado para seu e-mail.", "success")
@@ -284,52 +225,34 @@ def password_reset_confirm(token):
     user = Usuario.query.filter_by(email=email).first_or_404()
     form = SetPasswordForm()
     if form.validate_on_submit():
-        pw = form.new_password1.data
-        errors = validate_password_rules(pw)
+        errors = validate_password_rules(form.new_password1.data)
         if errors:
             for e in errors:
                 flash(e, "danger")
             return redirect(url_for("password_reset_confirm", token=token))
-        user.set_password(pw)
+        user.set_password(form.new_password1.data)
         db.session.commit()
         flash("Senha redefinida com sucesso.", "success")
         return redirect(url_for("home"))
-
     return render_template("core/password_reset_confirm.html", form=form)
-
-# -------------------------
-# Small utility route: dbinfo (like you requested)
-# -------------------------
-@app.route("/dbinfo/")
-def dbinfo():
-    engine = app.config["SQLALCHEMY_DATABASE_URI"]
-    try:
-        tables = [t[0] for t in db.engine.execute(
-            "SELECT table_name FROM information_schema.tables WHERE table_schema='public';"
-        )]
-    except Exception as e:
-        tables = [f"Erro: {e}"]
-    return render_template("core/dbinfo.html", engine=engine, tables=tables)
 
 # -------------------------
 # CLI convenience
 # -------------------------
 @app.cli.command("init-db")
 def init_db():
-    """Cria o banco e um superuser de teste (popula)"""
     db.create_all()
     if not Usuario.query.filter_by(username="admin").first():
-        u = Usuario(username="admin", email="admin@example.com", is_staff=True, is_superuser=True)
+        u = Usuario(username="admin", email="admin@example.com")
         u.set_password("adminpass")
         db.session.add(u)
         db.session.commit()
-        print("Superuser 'admin' criado com senha 'adminpass' (troque depois).")
+        print("Superuser 'admin' criado com senha 'adminpass'.")
     print("DB inicializado.")
 
 # -------------------------
 # Run
 # -------------------------
 if __name__ == "__main__":
-    # Cria tabelas automaticamente em dev
     db.create_all()
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=os.getenv("DEBUG", "True") == "True")
