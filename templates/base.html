@@ -1,1 +1,70 @@
 
+<!DOCTYPE html>
+<html lang="pt-br">
+{% load static %}
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}RPG de Mesa{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-gray-900 text-gray-200 font-sans">
+  
+  <!-- Header -->
+  <header class="bg-gray-800 shadow-lg p-4 flex flex-col items-center justify-center">
+    <div class="flex items-center space-x-3">
+      <img src="{% static 'img/logo.png' %}" alt="Logo" class="logoTop h-10 w-10 rounded-full">
+    </div>
+    <h1 class="text-2xl font-bold text-yellow-400">⚔️ Vamos pra aventura! ⚔️</h1>
+    <nav>
+      <a href="{% url 'home' %}" class="px-3 text-gray-300 hover:text-yellow-400">Início</a>
+      <a href="#" class="px-3 text-gray-300 hover:text-yellow-400">Sobre</a>
+      <a href="{% url 'logout' %}" class="px-3 text-gray-300 hover:text-red-400">Sair</a>
+    </nav>
+  </header>
+
+  <!-- Mensagens -->
+  {% if messages %}
+  <div class="p-4">
+    {% for message in messages %}
+      <div class="mb-2 p-3 rounded-lg 
+                  {% if message.tags == 'success' %} bg-green-700 text-white
+                  {% elif message.tags == 'error' %} bg-red-700 text-white
+                  {% else %} bg-gray-700 text-gray-200 {% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Main content -->
+  <main class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-6">
+    
+    <!-- Narrativa -->
+    <section class="col-span-2 bg-gray-800 p-4 rounded-xl shadow-md overflow-y-auto h-[70vh]">
+      {% block content %}
+      <h2 class="text-xl font-semibold text-yellow-300 mb-2">Narrativa</h2>
+      <p>Aqui aparecerá a história narrada pelo Mestre (IA).</p>
+      {% endblock %}
+    </section>
+
+    <!-- Sidebar jogador -->
+    <aside class="bg-gray-800 p-4 rounded-xl shadow-md h-[70vh] flex flex-col justify-between">
+      {% block sidebar %}
+      <div>
+        <h1 class="text-2xl font-bold text-yellow-400">⚔️ Vamos pra aventura! ⚔️</h1>
+      </div>
+      {% endblock %}
+    </aside>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-gray-400 text-center py-3 mt-6">
+    Mestre IA 🎲 | Powered by OpenAI
+  </footer>
+
+  {% block scripts %}{% endblock %}
+
+  <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>
