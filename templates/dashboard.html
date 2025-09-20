@@ -1,5 +1,4 @@
-{% extends "core/base.html" %}
-{% load static %}
+{% extends "base.html" %}
 
 {% block title %}Dashboard - RPG{% endblock %}
 
@@ -23,8 +22,7 @@
         <h2 class="text-xl font-semibold text-yellow-300 mb-2">Suas Ações</h2>
         
         <!-- Form de ações -->
-        <form method="post" action="{% url 'acao_jogador' %}">
-            {% csrf_token %}
+        <form method="post" action="{{ url_for('acao_jogador') }}">
             <button type="submit" name="acao" value="atacar"
                 class="w-full bg-yellow-500 text-black font-bold py-2 rounded-lg mb-2">Atacar ⚔️</button>
             <button type="submit" name="acao" value="conversar"
@@ -42,7 +40,7 @@
     <!-- Informações do jogador -->
     <div class="text-sm text-gray-400 mt-4">
         <p>Turno: {{ turno }}</p>
-        <p>Jogador: {{ request.user.username }}</p>
+        <p>Jogador: {{ usuario.username }}</p>
         <p>HP: {{ jogador.hp }} | MP: {{ jogador.mp }}</p>
     </div>
 </div>
