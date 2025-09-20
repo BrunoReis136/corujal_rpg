@@ -13,6 +13,8 @@ from models import Usuario, Personagem, Item, Aventura, Sessao, Participacao, Hi
 # Config
 # -------------------------
 app = Flask(__name__)
+
+
 app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -25,6 +27,8 @@ app.config["MAIL_USERNAME"] = os.getenv("MAIL_USER")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASS")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_TO", app.config["MAIL_USERNAME"])
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 # Token serializer for password reset
 serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 
@@ -35,6 +39,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "home"
 mail = Mail(app)
+serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 
 # -------------------------
 # Login manager
@@ -255,4 +260,4 @@ def init_db():
 # -------------------------
 if __name__ == "__main__":
     db.create_all()
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=os.getenv("DEBUG", "True") == "True")
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=os.getenv("DEBUG", "False") == "True")
