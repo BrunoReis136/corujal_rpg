@@ -64,6 +64,6 @@
 
   {% block scripts %}{% endblock %}
 
-  <script src="{% static 'js/script.js' %}"></script>
+  <script src="{{ url_for('static', filename='js/code.js') }}}"></script>
 </body>
 </html>
