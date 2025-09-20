@@ -1,8 +1,9 @@
-Flask>=2.2
-Flask-Login
-Flask-Mail
-Flask-WTF
+Flask
 Flask-SQLAlchemy
+Flask-Login
+Flask-WTF
+Flask-Mail
+gunicorn
 itsdangerous
-psycopg2-binary
 WTForms
+Werkzeug
