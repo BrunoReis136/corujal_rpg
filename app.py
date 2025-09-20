@@ -100,7 +100,7 @@ def home():
         flash("Cadastro realizado com sucesso! Faça login.", "success")
         return redirect(url_for("home"))
 
-    return render_template("core/home.html", login_form=login_form, signup_form=signup_form, forgot_form=forgot_form)
+    return render_template("home.html", login_form=login_form, signup_form=signup_form, forgot_form=forgot_form)
 
 @app.route("/logout/")
 @login_required
@@ -115,7 +115,7 @@ def dashboard():
     narrativa = session.get("narrativa", ["Bem-vindo à aventura, herói!", "O mestre IA aguarda sua primeira ação."])
     jogador = {"hp": 100, "mp": 50}
     turno = session.get("turno", 1)
-    return render_template("core/dashboard.html", narrativa=narrativa, jogador=jogador, turno=turno)
+    return render_template("dashboard.html", narrativa=narrativa, jogador=jogador, turno=turno)
 
 @app.route("/acao/", methods=["POST"])
 @login_required
@@ -139,7 +139,7 @@ def acao_jogador():
 @login_required
 def lista_aventuras():
     aventuras = Aventura.query.order_by(Aventura.criada_em.desc()).all()
-    return render_template("core/aventuras.html", aventuras=aventuras)
+    return render_template("aventuras.html", aventuras=aventuras)
 
 @app.route("/aventuras/nova/", methods=["GET", "POST"])
 @login_required
@@ -157,7 +157,7 @@ def nova_aventura():
         db.session.commit()
         flash("Aventura criada.", "success")
         return redirect(url_for("lista_aventuras"))
-    return render_template("core/nova_aventura.html", form=form)
+    return render_template("nova_aventura.html", form=form)
 
 @app.route("/aventuras/<int:pk>/editar/", methods=["GET", "POST"])
 @login_required
@@ -173,7 +173,7 @@ def editar_aventura(pk):
         db.session.commit()
         flash("Aventura atualizada.", "success")
         return redirect(url_for("lista_aventuras"))
-    return render_template("core/nova_aventura.html", form=form, editando=True)
+    return render_template("nova_aventura.html", form=form, editando=True)
 
 @app.route("/aventuras/<int:pk>/entrar/")
 @login_required
@@ -194,7 +194,7 @@ def excluir_aventura(pk):
         db.session.commit()
         flash("Aventura excluída.", "success")
         return redirect(url_for("lista_aventuras"))
-    return render_template("core/confirma_exclusao.html", aventura=aventura)
+    return render_template("confirma_exclusao.html", aventura=aventura)
 
 # -------------------------
 # Password reset flow
@@ -239,7 +239,7 @@ def password_reset_confirm(token):
         db.session.commit()
         flash("Senha redefinida com sucesso.", "success")
         return redirect(url_for("home"))
-    return render_template("core/password_reset_confirm.html", form=form)
+    return render_template("password_reset_confirm.html", form=form)
 
 # -------------------------
 # CLI convenience
