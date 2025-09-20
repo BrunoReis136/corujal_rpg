@@ -17,7 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
 from forms import LoginForm,SignupForm, AventuraForm,ForgotPasswordForm, SetPasswordForm
-from models import Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens,
+from models import Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 
 # -------------------------
 # Config
