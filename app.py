@@ -72,35 +72,24 @@ def home():
     signup_form = SignupForm()
     forgot_form = ForgotPasswordForm()
 
-    # login
+    # login via WTForms
     if login_form.validate_on_submit() and login_form.submit.data:
         user = Usuario.query.filter_by(username=login_form.username.data).first()
         if user and user.check_password(login_form.password.data):
             login_user(user)
             flash(f"Bem-vindo, {user.username}!", "success")
-            next_url = request.args.get("next") or url_for("lista_aventuras")
+            next_url = request.args.get("next") or url_for("nova_aventura")
             return redirect(next_url)
         flash("Usuário ou senha incorretos.", "danger")
         return redirect(url_for("home"))
 
-    # signup
-    if signup_form.validate_on_submit() and signup_form.submit.data:
-        if Usuario.query.filter_by(username=signup_form.username.data).first():
-            flash("Usuário já existe.", "danger")
-            return redirect(url_for("home"))
-        errors = validate_password_rules(signup_form.password1.data)
-        if errors:
-            for e in errors:
-                flash(e, "danger")
-            return redirect(url_for("home"))
-        user = Usuario(username=signup_form.username.data, email=signup_form.email.data)
-        user.set_password(signup_form.password1.data)
-        db.session.add(user)
-        db.session.commit()
-        flash("Cadastro realizado com sucesso! Faça login.", "success")
-        return redirect(url_for("home"))
+    return render_template(
+        "home.html",
+        login_form=login_form,
+        signup_form=signup_form,
+        forgot_form=forgot_form
+    )
 
-    return render_template("home.html", login_form=login_form, signup_form=signup_form, forgot_form=forgot_form)
 
 @app.route("/logout/")
 @login_required
