@@ -39,7 +39,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login = "home"
 mail = Mail(app)
-serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
+
 
 # -------------------------
 # Login manager
