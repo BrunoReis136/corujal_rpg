@@ -23,16 +23,17 @@
   </header>
 
   <!-- Mensagens -->
+<!-- Mensagens -->
+{% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="{% if category == 'success' %}bg-green-700{% elif category == 'danger' %}bg-red-700{% else %}bg-gray-700{% endif %}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+    {% for category, message in messages %}
+      <div class="{% if category == 'success' %}bg-green-700{% elif category == 'danger' %}bg-red-700{% else %}bg-gray-700{% endif %} p-2 rounded mb-2 text-white">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
 
   <!-- Main content -->
   <main class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-6">
