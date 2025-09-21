@@ -8,7 +8,7 @@
   {% if messages %}
   <div class="mb-4">
     {% for category, message in messages %}
-      <p class="text-white {% if category=='error' %}bg-red-600{% elif category=='success' %}bg-green-600{% else %}bg-gray-600{% endif %} p-2 rounded mb-1">{{ message }}</p>
+      <p class="text-white {% if category=='danger' %}bg-red-600{% elif category=='success' %}bg-green-600{% else %}bg-gray-600{% endif %} p-2 rounded mb-1">{{ message }}</p>
     {% endfor %}
   </div>
   {% endif %}
@@ -20,48 +20,54 @@
   <!-- Tabs -->
   <div class="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-md">
     <div class="flex justify-around mb-4">
-      <button onclick="showForm('login', this)" class="tab-btn text-yellow-400 font-semibold">Login</button>
-      <button onclick="showForm('signup', this)" class="tab-btn text-gray-300 hover:text-yellow-400">Cadastro</button>
-      <button onclick="showForm('forgot', this)" class="tab-btn text-gray-300 hover:text-yellow-400">Esqueci a senha</button>
+      <button type="button" onclick="showForm('login', this)" class="tab-btn text-yellow-400 font-semibold">Login</button>
+      <button type="button" onclick="showForm('signup', this)" class="tab-btn text-gray-300 hover:text-yellow-400">Cadastro</button>
+      <button type="button" onclick="showForm('forgot', this)" class="tab-btn text-gray-300 hover:text-yellow-400">Esqueci a senha</button>
     </div>
 
     <!-- Login Form -->
-    <form id="login-form" method="post">
+    <form id="login-form" method="post" action="{{ url_for('home') }}">
       {{ login_form.hidden_tag() }}
-    
       <div class="mb-3">
         {{ login_form.username(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Usuário") }}
       </div>
-    
       <div class="mb-3">
         {{ login_form.password(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Senha") }}
       </div>
-    
       <div>
         {{ login_form.submit(class_="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg") }}
       </div>
     </form>
 
     <!-- Signup Form -->
-    <form id="signup-form" class="form-block hidden" method="post" action="{{ url_for('signup') }}">
-      <input type="text" name="username" placeholder="Usuário" required
-        class="w-full mb-3 p-2 rounded-lg bg-gray-700 text-gray-200">
-      <input type="email" name="email" placeholder="E-mail" required
-        class="w-full mb-3 p-2 rounded-lg bg-gray-700 text-gray-200">
-      <input type="password" name="password1" placeholder="Senha" required
-        class="w-full mb-3 p-2 rounded-lg bg-gray-700 text-gray-200">
-      <input type="password" name="password2" placeholder="Confirme a Senha" required
-        class="w-full mb-3 p-2 rounded-lg bg-gray-700 text-gray-200">
-      <button type="submit"
-        class="w-full bg-green-400 text-black font-bold py-2 rounded-lg">Cadastrar</button>
+    <form id="signup-form" class="form-block hidden" method="post" action="{{ url_for('home') }}">
+      {{ signup_form.hidden_tag() }}
+      <div class="mb-3">
+        {{ signup_form.username(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Usuário") }}
+      </div>
+      <div class="mb-3">
+        {{ signup_form.email(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="E-mail") }}
+      </div>
+      <div class="mb-3">
+        {{ signup_form.password1(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Senha") }}
+      </div>
+      <div class="mb-3">
+        {{ signup_form.password2(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Confirme a Senha") }}
+      </div>
+      <div>
+        {{ signup_form.submit(class_="w-full bg-green-400 text-black font-bold py-2 rounded-lg") }}
+      </div>
     </form>
 
     <!-- Forgot Password Form -->
     <form id="forgot-form" class="form-block hidden" method="post" action="{{ url_for('forgot_password') }}">
-      <input type="email" name="email" placeholder="Digite seu e-mail" required
-        class="w-full mb-3 p-2 rounded-lg bg-gray-700 text-gray-200">
-      <button type="submit"
-        class="w-full bg-blue-400 text-black font-bold py-2 rounded-lg">Enviar link de recuperação</button>
+      {{ forgot_form.hidden_tag() }}
+      <div class="mb-3">
+        {{ forgot_form.email(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Digite seu e-mail") }}
+      </div>
+      <div>
+        {{ forgot_form.submit(class_="w-full bg-blue-400 text-black font-bold py-2 rounded-lg") }}
+      </div>
     </form>
   </div>
 </div>
