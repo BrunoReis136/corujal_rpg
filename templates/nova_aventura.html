@@ -13,7 +13,7 @@
   <div class="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-lg">
     <form method="post" class="space-y-4">
       <!-- CSRF token removido se não usar Flask-WTF -->
-      
+      {{ form.hidden_tag() }}
       <!-- Campos do formulário (ajuste os nomes conforme o modelo Aventura) -->
       <div>
         <label for="nome">Nome da Aventura</label>
