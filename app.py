@@ -37,7 +37,7 @@ serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 # -------------------------
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
-login_manager.login_view = "home"
+login_manager.login = "home"
 mail = Mail(app)
 serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 
@@ -215,7 +215,7 @@ def send_password_reset_email(user):
     mail.send(msg)
 
 @app.route("/forgot-password/", methods=["POST"])
-def forgot_password_view():
+def forgot_password():
     form = ForgotPasswordForm()
     if form.validate_on_submit():
         user = Usuario.query.filter_by(email=form.email.data).first()
