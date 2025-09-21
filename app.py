@@ -202,9 +202,16 @@ def excluir_aventura(pk):
 def send_password_reset_email(user):
     token = serializer.dumps(user.email, salt="password-reset-salt")
     reset_url = url_for("password_reset_confirm", token=token, _external=True)
-    subject = "Redefinição de senha"
-    body = f"Olá {user.username},\n\nPara redefinir sua senha clique no link abaixo:\n\n{reset_url}\n\nSe você não pediu, ignore este email."
-    msg = Message(subject=subject, recipients=[user.email], body=body)
+
+    msg = Message(
+        subject="Redefinição de senha",
+        recipients=[user.email]
+    )
+    msg.html = render_template(
+        "password_reset_email.html",
+        user=user,
+        reset_url=reset_url
+    )
     mail.send(msg)
 
 @app.route("/forgot-password/", methods=["POST"])
