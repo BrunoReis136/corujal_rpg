@@ -104,7 +104,7 @@ def home():
 
 @app.route("/logout/")
 @login_required
-def logout_view():
+def logout():
     logout_user()
     flash("Você saiu da conta.", "info")
     return redirect(url_for("home"))
