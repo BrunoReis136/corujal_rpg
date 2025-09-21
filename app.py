@@ -241,6 +241,22 @@ def password_reset_confirm(token):
         return redirect(url_for("home"))
     return render_template("password_reset_confirm.html", form=form)
 
+
+@app.route("/sobre/")
+def sobre():
+    return render_template("sobre.html")
+
+@app.route("/contato/")
+def contato():
+    return render_template("contato.html")
+
+@app.route("/servicos/")
+def servicos():
+    return render_template("servicos.html")
+
+
+
+
 # -------------------------
 # CLI convenience
 # -------------------------
