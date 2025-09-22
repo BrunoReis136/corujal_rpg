@@ -1,7 +1,7 @@
 # app.py
 import os
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for, request, flash, session, abort
+from flask import Flask, render_template, redirect, url_for, request, flash, session, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
@@ -252,14 +252,24 @@ def contato():
 def servicos():
     return render_template("servicos.html")
 
-
 @app.route("/db_reset")
 def db_reset():
     try:
-        db.drop_all()
+        # Drop só as tabelas do seu models.py
+        db.session.execute('DROP TABLE IF EXISTS historicomensagens CASCADE')
+        db.session.execute('DROP TABLE IF EXISTS participacao CASCADE')
+        db.session.execute('DROP TABLE IF EXISTS sessao CASCADE')
+        db.session.execute('DROP TABLE IF EXISTS aventura CASCADE')
+        db.session.execute('DROP TABLE IF EXISTS item CASCADE')
+        db.session.execute('DROP TABLE IF EXISTS personagem CASCADE')
+        db.session.execute('DROP TABLE IF EXISTS usuario CASCADE')
+        db.session.commit()
+
+        # Recria todas
         db.create_all()
         return jsonify({"status": "ok", "msg": "Tabelas resetadas com sucesso!"})
     except Exception as e:
+        db.session.rollback()
         return jsonify({"status": "erro", "msg": str(e)})
 
 # -------------------------
