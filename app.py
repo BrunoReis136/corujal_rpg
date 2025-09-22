@@ -8,6 +8,7 @@ from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPasswordForm
 from models import db, Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
+from sqlalchemy import text
 
 # -------------------------
 # Config
@@ -252,26 +253,30 @@ def contato():
 def servicos():
     return render_template("servicos.html")
 
+
 @app.route("/db_reset")
 def db_reset():
     try:
-        # Drop só as tabelas do seu models.py
-        db.session.execute('DROP TABLE IF EXISTS historicomensagens CASCADE')
-        db.session.execute('DROP TABLE IF EXISTS participacao CASCADE')
-        db.session.execute('DROP TABLE IF EXISTS sessao CASCADE')
-        db.session.execute('DROP TABLE IF EXISTS aventura CASCADE')
-        db.session.execute('DROP TABLE IF EXISTS item CASCADE')
-        db.session.execute('DROP TABLE IF EXISTS personagem CASCADE')
-        db.session.execute('DROP TABLE IF EXISTS usuario CASCADE')
-        db.session.commit()
+        tabelas = [
+            "historicomensagens",
+            "participacao",
+            "sessao",
+            "aventura",
+            "item",
+            "personagem",
+            "usuario"
+        ]
 
-        # Recria todas
+        for tabela in tabelas:
+            db.session.execute(text(f'DROP TABLE IF EXISTS {tabela} CASCADE'))
+
+        db.session.commit()
         db.create_all()
+
         return jsonify({"status": "ok", "msg": "Tabelas resetadas com sucesso!"})
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": "erro", "msg": str(e)})
-
 # -------------------------
 # CLI convenience
 # -------------------------
