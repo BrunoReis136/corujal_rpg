@@ -10,7 +10,7 @@ db = SQLAlchemy()
 # Models
 # -------------------------
 class Usuario(db.Model, UserMixin):
-    __tablename__ = "usuario"
+    __tablename__ = "core_usuario"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(254), unique=True, nullable=False)
@@ -34,7 +34,7 @@ class Usuario(db.Model, UserMixin):
 
 # Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 class Personagem(db.Model):
-    __tablename__ = "personagem"
+    __tablename__ = "core_personagem"
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100))
     classe = db.Column(db.String(50))
@@ -47,7 +47,7 @@ class Personagem(db.Model):
     usuario = db.relationship("Usuario", backref="personagens")
 
 class Item(db.Model):
-    __tablename__ = "item"
+    __tablename__ = "core_item"
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100))
     tipo = db.Column(db.String(50))
@@ -55,7 +55,7 @@ class Item(db.Model):
     efeitos = db.Column(db.JSON, default={})
 
 class Aventura(db.Model):
-    __tablename__ = "aventura"
+    __tablename__ = "core_aventura"
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(200))
     descricao = db.Column(db.Text)
@@ -72,7 +72,7 @@ class Aventura(db.Model):
     criador = db.relationship("Usuario", backref="aventuras_criadas")
 
 class Sessao(db.Model):
-    __tablename__ = "sessao"
+    __tablename__ = "core_sessao"
     id = db.Column(db.Integer, primary_key=True)
     aventura_id = db.Column(db.Integer, db.ForeignKey("core_aventura.id"))
     aventura = db.relationship("Aventura", backref="sessoes")
@@ -84,7 +84,7 @@ class Sessao(db.Model):
     resposta_bruta = db.Column(db.Text, default="")
 
 class Participacao(db.Model):
-    __tablename__ = "participacao"
+    __tablename__ = "core_participacao"
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey("core_usuario.id"))
     usuario = db.relationship("Usuario", backref="participacoes")
@@ -95,7 +95,7 @@ class Participacao(db.Model):
     papel = db.Column(db.String(50))
 
 class HistoricoMensagens(db.Model):
-    __tablename__ = "historicomensagens"
+    __tablename__ = "core_historicomensagens"
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey("core_usuario.id"), nullable=True)
     usuario = db.relationship("Usuario", backref="mensagens")
