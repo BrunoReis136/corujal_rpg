@@ -7,7 +7,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPasswordForm
-from models import Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
+from models import db, Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 
 # -------------------------
 # Config
@@ -35,12 +35,14 @@ serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 # -------------------------
 # Extensions
 # -------------------------
-db = SQLAlchemy(app)
+db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login = "home"
 mail = Mail(app)
 
-
+with app.app_context():
+    db.create_all()
+    
 # -------------------------
 # Login manager
 # -------------------------
@@ -271,5 +273,4 @@ def init_db():
 # Run
 # -------------------------
 if __name__ == "__main__":
-    db.create_all()
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=os.getenv("DEBUG", "False") == "True")
