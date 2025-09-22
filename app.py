@@ -253,7 +253,14 @@ def servicos():
     return render_template("servicos.html")
 
 
-
+@app.route("/db_reset")
+def db_reset():
+    try:
+        db.drop_all()
+        db.create_all()
+        return jsonify({"status": "ok", "msg": "Tabelas resetadas com sucesso!"})
+    except Exception as e:
+        return jsonify({"status": "erro", "msg": str(e)})
 
 # -------------------------
 # CLI convenience
