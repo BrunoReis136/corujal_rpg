@@ -69,13 +69,16 @@ def validate_password_rules(pw):
 # -------------------------
 # Routes
 # -------------------------
+
 @app.route("/", methods=["GET", "POST"])
 def home():
     login_form = LoginForm()
     signup_form = SignupForm()
     forgot_form = ForgotPasswordForm()
 
-    # login via WTForms
+    # -------------------------
+    # LOGIN
+    # -------------------------
     if login_form.validate_on_submit() and login_form.submit.data:
         user = Usuario.query.filter_by(username=login_form.username.data).first()
         if user and user.check_password(login_form.password.data):
@@ -84,6 +87,42 @@ def home():
             next_url = request.args.get("next") or url_for("nova_aventura")
             return redirect(next_url)
         flash("Usuário ou senha incorretos.", "danger")
+        return redirect(url_for("home"))
+
+    # -------------------------
+    # SIGNUP
+    # -------------------------
+    if signup_form.validate_on_submit() and signup_form.submit.data:
+        username = signup_form.username.data
+        email = signup_form.email.data
+        password = signup_form.password1.data
+
+        existente = Usuario.query.filter(
+            (Usuario.username == username) | (Usuario.email == email)
+        ).first()
+
+        if existente:
+            flash("Usuário ou e-mail já cadastrado!", "danger")
+        else:
+            novo = Usuario(username=username, email=email)
+            novo.set_password(password)
+            db.session.add(novo)
+            db.session.commit()
+            login_user(novo)
+            flash("Cadastro realizado com sucesso!", "success")
+            return redirect(url_for("nova_aventura"))
+
+    # -------------------------
+    # FORGOT PASSWORD
+    # -------------------------
+    if forgot_form.validate_on_submit() and forgot_form.submit.data:
+        user = Usuario.query.filter_by(email=forgot_form.email.data).first()
+        if user:
+            # você já tem a função send_password_reset_email
+            send_password_reset_email(user)
+            flash("Link de redefinição enviado para seu e-mail.", "success")
+        else:
+            flash("E-mail não encontrado.", "danger")
         return redirect(url_for("home"))
 
     return render_template(
