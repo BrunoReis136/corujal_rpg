@@ -8,3 +8,4 @@ itsdangerous
 WTForms
 Werkzeug
 psycopg2-binary
+email-validator
