@@ -254,29 +254,36 @@ def servicos():
     return render_template("servicos.html")
 
 
+
 @app.route("/db_reset")
 def db_reset():
     try:
+        # Lista das tabelas do seu models.py com prefixo core_
         tabelas = [
-            "historicomensagens",
-            "participacao",
-            "sessao",
-            "aventura",
-            "item",
-            "personagem",
-            "usuario"
+            "core_historicomensagens",
+            "core_participacao",
+            "core_sessao",
+            "core_aventura",
+            "core_item",
+            "core_personagem",
+            "core_usuario"
         ]
 
+        # Derruba apenas essas tabelas
         for tabela in tabelas:
             db.session.execute(text(f'DROP TABLE IF EXISTS {tabela} CASCADE'))
 
         db.session.commit()
+
+        # Recria de acordo com os models atuais
         db.create_all()
 
-        return jsonify({"status": "ok", "msg": "Tabelas resetadas com sucesso!"})
+        return jsonify({"status": "ok", "msg": "Tabelas core_* resetadas com sucesso!"})
+
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": "erro", "msg": str(e)})
+
 # -------------------------
 # CLI convenience
 # -------------------------
