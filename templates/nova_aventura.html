@@ -45,6 +45,41 @@
           ↩️ Voltar
         </a>
       </div>
+
+    <div>
+      {{ form.status.label(class="block mb-1 text-yellow-300") }}
+      {{ form.status(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
+    </div>
+    
+    <div>
+      {{ form.regras.label(class="block mb-1 text-yellow-300") }}
+      {{ form.regras(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=4) }}
+    </div>
+    
+    <div>
+      {{ form.resumo_atual.label(class="block mb-1 text-yellow-300") }}
+      {{ form.resumo_atual(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
+    </div>
+    
+    <div>
+      {{ form.ultimo_turno.label(class="block mb-1 text-yellow-300") }}
+      {{ form.ultimo_turno(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
+    </div>
+    
+    <div>
+      {{ form.metadados.label(class="block mb-1 text-yellow-300") }}
+      {{ form.metadados(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
+    </div>
+    
+    <div>
+      {{ form.estado_personagens.label(class="block mb-1 text-yellow-300") }}
+      {{ form.estado_personagens(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
+    </div>
+    
+    <div>
+      {{ form.estado_aventura.label(class="block mb-1 text-yellow-300") }}
+      {{ form.estado_aventura(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
+    </div>
     </form>
 
   </div>
