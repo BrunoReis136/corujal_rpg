@@ -275,17 +275,7 @@ def send_password_reset_email(user):
     )
     mail.send(msg)
 
-@app.route("/forgot-password/", methods=["POST"])
-def forgot_password():
-    form = ForgotPasswordForm()
-    if form.validate_on_submit():
-        user = Usuario.query.filter_by(email=form.email.data).first()
-        if user:
-            send_password_reset_email(user)
-            flash("Link de redefinição enviado para seu e-mail.", "success")
-        else:
-            flash("E-mail não encontrado.", "danger")
-    return redirect(url_for("home"))
+
 
 @app.route("/reset/<token>/", methods=["GET", "POST"])
 def password_reset_confirm(token):
