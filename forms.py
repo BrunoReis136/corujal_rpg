@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
-from wtforms.validators import DataRequired, Email, EqualTo, Length
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 
 # -------------------------
 # Forms
@@ -21,6 +21,22 @@ class AventuraForm(FlaskForm):
     titulo = StringField("Título", validators=[DataRequired()])
     descricao = TextAreaField("Descrição", validators=[DataRequired()])
     cenario = StringField("Cenário", validators=[DataRequired()])
+
+    # extras
+    status = SelectField(
+        "Status",
+        choices=[("preparacao", "Preparação"),
+                 ("andamento", "Em Andamento"),
+                 ("concluida", "Concluída")],
+        validators=[DataRequired()]
+    )
+    regras = TextAreaField("Regras (JSON)", validators=[Optional()])
+    resumo_atual = TextAreaField("Resumo Atual", validators=[Optional()])
+    ultimo_turno = TextAreaField("Último Turno (JSON)", validators=[Optional()])
+    metadados = TextAreaField("Metadados (JSON)", validators=[Optional()])
+    estado_personagens = TextAreaField("Estado dos Personagens (JSON)", validators=[Optional()])
+    estado_aventura = TextAreaField("Estado da Aventura (JSON)", validators=[Optional()])
+
     submit = SubmitField("Salvar")
 
 class ForgotPasswordForm(FlaskForm):
