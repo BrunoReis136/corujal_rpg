@@ -11,32 +11,42 @@
   </h2>
 
   <div class="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-lg">
-    <form method="post" class="space-y-4">
-      <!-- CSRF token removido se não usar Flask-WTF -->
+   <form method="post" class="space-y-4">
       {{ form.hidden_tag() }}
-      <!-- Campos do formulário (ajuste os nomes conforme o modelo Aventura) -->
+    
       <div>
-        <label for="nome">Nome da Aventura</label>
-        <input type="text" name="nome" id="nome" class="w-full p-2 rounded-lg bg-gray-700 text-white" 
-               value="{{ aventura.nome if editando else '' }}">
+        {{ form.titulo.label(class="block mb-1 text-yellow-300") }}
+        {{ form.titulo(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
+        {% for error in form.titulo.errors %}
+          <span class="text-red-400 text-sm">{{ error }}</span>
+        {% endfor %}
       </div>
-
+    
       <div>
-        <label for="descricao">Descrição</label>
-        <textarea name="descricao" id="descricao" class="w-full p-2 rounded-lg bg-gray-700 text-white">{{ aventura.descricao if editando else '' }}</textarea>
+        {{ form.descricao.label(class="block mb-1 text-yellow-300") }}
+        {{ form.descricao(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
+        {% for error in form.descricao.errors %}
+          <span class="text-red-400 text-sm">{{ error }}</span>
+        {% endfor %}
       </div>
-
+    
+      <div>
+        {{ form.cenario.label(class="block mb-1 text-yellow-300") }}
+        {{ form.cenario(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
+        {% for error in form.cenario.errors %}
+          <span class="text-red-400 text-sm">{{ error }}</span>
+        {% endfor %}
+      </div>
+    
       <div class="flex gap-4">
-        <button type="submit"
-                class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
-          {% if editando %}💾 Salvar Alterações{% else %}➕ Criar{% endif %}
-        </button>
+        {{ form.submit(class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg") }}
         <a href="{{ url_for('lista_aventuras') }}"
            class="flex-1 text-center bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
           ↩️ Voltar
         </a>
       </div>
     </form>
+
   </div>
 </div>
 {% endblock %}
