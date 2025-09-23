@@ -84,7 +84,7 @@ def home():
         if user and user.check_password(login_form.password.data):
             login_user(user)
             flash(f"Bem-vindo, {user.username}!", "success")
-            next_url = request.args.get("next") or url_for("nova_aventura")
+            next_url = request.args.get("next") or url_for("aventuras")
             return redirect(next_url)
         flash("Usuário ou senha incorretos.", "danger")
         return redirect(url_for("home"))
