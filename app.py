@@ -188,7 +188,7 @@ def acao_jogador():
 @app.route("/aventuras/")
 @login_required
 def lista_aventuras():
-    aventuras = Aventura.query.order_by(Aventura.criada_em.desc()).all()
+    aventuras = Aventura.query.filter_by(criador_id=user.id).order_by(Aventura.criada_em.desc()).all()
     return render_template("aventuras.html", aventuras=aventuras)
 
 @app.route("/aventuras/nova/", methods=["GET", "POST"])
@@ -202,11 +202,6 @@ def nova_aventura():
             cenario=form.cenario.data,
             status=form.status.data,
             regras=safe_json(form.regras.data),
-            resumo_atual=form.resumo_atual.data,
-            ultimo_turno=safe_json(form.ultimo_turno.data),
-            metadados=safe_json(form.metadados.data),
-            estado_personagens=safe_json(form.estado_personagens.data),
-            estado_aventura=safe_json(form.estado_aventura.data),
             criador=current_user
         )
         db.session.add(aventura)
@@ -225,10 +220,6 @@ def editar_aventura(pk):
     form = AventuraForm(
         obj=aventura,
         regras=json.dumps(aventura.regras or {}, indent=2),
-        ultimo_turno=json.dumps(aventura.ultimo_turno or {}, indent=2),
-        metadados=json.dumps(aventura.metadados or {}, indent=2),
-        estado_personagens=json.dumps(aventura.estado_personagens or {}, indent=2),
-        estado_aventura=json.dumps(aventura.estado_aventura or {}, indent=2)
     )
 
     if form.validate_on_submit():
@@ -237,11 +228,6 @@ def editar_aventura(pk):
         aventura.cenario = form.cenario.data
         aventura.status = form.status.data
         aventura.regras = safe_json(form.regras.data)
-        aventura.resumo_atual = form.resumo_atual.data
-        aventura.ultimo_turno = safe_json(form.ultimo_turno.data)
-        aventura.metadados = safe_json(form.metadados.data)
-        aventura.estado_personagens = safe_json(form.estado_personagens.data)
-        aventura.estado_aventura = safe_json(form.estado_aventura.data)
 
         db.session.commit()
         flash("Aventura atualizada.", "success")
