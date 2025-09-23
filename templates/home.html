@@ -4,15 +4,6 @@
 
 {% block content %}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-  <div class="mb-4">
-    {% for category, message in messages %}
-      <p class="text-white {% if category=='danger' %}bg-red-600{% elif category=='success' %}bg-green-600{% else %}bg-gray-600{% endif %} p-2 rounded mb-1">{{ message }}</p>
-    {% endfor %}
-  </div>
-  {% endif %}
-{% endwith %}
 
 <div class="flex flex-col items-center justify-center h-full">
   <h2 class="text-3xl font-bold text-yellow-300 mb-6">🎲 Entre na Aventura</h2>
@@ -26,7 +17,7 @@
     </div>
 
     <!-- Login Form -->
-    <form id="login-form" method="post" action="{{ url_for('home') }}">
+    <form id="login-form" class="form-block" method="post" action="{{ url_for('home') }}">
       {{ login_form.hidden_tag() }}
       <div class="mb-3">
         {{ login_form.username(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Usuário") }}
@@ -98,5 +89,14 @@
     document.getElementById(formId + "-form").classList.remove("hidden");
     el.classList.add("text-yellow-400");
   }
+
+  // Mostrar login por padrão quando carregar a página
+  document.addEventListener("DOMContentLoaded", () => {
+    const loginBtn = document.querySelector('[onclick*="login"]');
+    if (loginBtn) {
+      showForm("login", loginBtn);
+    }
+  });
 </script>
 {% endblock %}
+
