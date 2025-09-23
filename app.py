@@ -188,7 +188,7 @@ def acao_jogador():
 @app.route("/aventuras/")
 @login_required
 def lista_aventuras():
-    aventuras = Aventura.query.filter_by(criador_id=user.id).order_by(Aventura.criada_em.desc()).all()
+    aventuras = Aventura.query.filter_by(criador_id=current.user.id).order_by(Aventura.criada_em.desc()).all()
     return render_template("aventuras.html", aventuras=aventuras)
 
 @app.route("/aventuras/nova/", methods=["GET", "POST"])
