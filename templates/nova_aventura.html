@@ -11,9 +11,10 @@
   </h2>
 
   <div class="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-lg">
-   <form method="post" class="space-y-4">
+    <form method="post" class="space-y-4">
       {{ form.hidden_tag() }}
-    
+
+      <!-- título -->
       <div>
         {{ form.titulo.label(class="block mb-1 text-yellow-300") }}
         {{ form.titulo(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
@@ -21,7 +22,8 @@
           <span class="text-red-400 text-sm">{{ error }}</span>
         {% endfor %}
       </div>
-    
+
+      <!-- descrição -->
       <div>
         {{ form.descricao.label(class="block mb-1 text-yellow-300") }}
         {{ form.descricao(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
@@ -29,7 +31,8 @@
           <span class="text-red-400 text-sm">{{ error }}</span>
         {% endfor %}
       </div>
-    
+
+      <!-- cenário -->
       <div>
         {{ form.cenario.label(class="block mb-1 text-yellow-300") }}
         {{ form.cenario(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
@@ -37,7 +40,50 @@
           <span class="text-red-400 text-sm">{{ error }}</span>
         {% endfor %}
       </div>
-    
+
+      <!-- status -->
+      <div>
+        {{ form.status.label(class="block mb-1 text-yellow-300") }}
+        {{ form.status(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
+      </div>
+
+      <!-- regras -->
+      <div>
+        {{ form.regras.label(class="block mb-1 text-yellow-300") }}
+        {{ form.regras(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=4) }}
+      </div>
+
+      <!-- resumo atual -->
+      <div>
+        {{ form.resumo_atual.label(class="block mb-1 text-yellow-300") }}
+        {{ form.resumo_atual(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
+      </div>
+
+      <!-- último turno -->
+      <div>
+        {{ form.ultimo_turno.label(class="block mb-1 text-yellow-300") }}
+        {{ form.ultimo_turno(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
+      </div>
+
+      <!-- metadados -->
+      <div>
+        {{ form.metadados.label(class="block mb-1 text-yellow-300") }}
+        {{ form.metadados(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
+      </div>
+
+      <!-- estado personagens -->
+      <div>
+        {{ form.estado_personagens.label(class="block mb-1 text-yellow-300") }}
+        {{ form.estado_personagens(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
+      </div>
+
+      <!-- estado aventura -->
+      <div>
+        {{ form.estado_aventura.label(class="block mb-1 text-yellow-300") }}
+        {{ form.estado_aventura(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
+      </div>
+
+      <!-- botões -->
       <div class="flex gap-4">
         {{ form.submit(class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg") }}
         <a href="{{ url_for('lista_aventuras') }}"
@@ -45,43 +91,7 @@
           ↩️ Voltar
         </a>
       </div>
-
-    <div>
-      {{ form.status.label(class="block mb-1 text-yellow-300") }}
-      {{ form.status(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
-    </div>
-    
-    <div>
-      {{ form.regras.label(class="block mb-1 text-yellow-300") }}
-      {{ form.regras(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=4) }}
-    </div>
-    
-    <div>
-      {{ form.resumo_atual.label(class="block mb-1 text-yellow-300") }}
-      {{ form.resumo_atual(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
-    </div>
-    
-    <div>
-      {{ form.ultimo_turno.label(class="block mb-1 text-yellow-300") }}
-      {{ form.ultimo_turno(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
-    </div>
-    
-    <div>
-      {{ form.metadados.label(class="block mb-1 text-yellow-300") }}
-      {{ form.metadados(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
-    </div>
-    
-    <div>
-      {{ form.estado_personagens.label(class="block mb-1 text-yellow-300") }}
-      {{ form.estado_personagens(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
-    </div>
-    
-    <div>
-      {{ form.estado_aventura.label(class="block mb-1 text-yellow-300") }}
-      {{ form.estado_aventura(class="w-full p-2 rounded-lg bg-gray-700 text-white", rows=3) }}
-    </div>
     </form>
-
   </div>
 </div>
 {% endblock %}
