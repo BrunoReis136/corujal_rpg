@@ -10,6 +10,8 @@ from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPa
 from models import db, Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 from sqlalchemy import text
 
+import json
+
 # -------------------------
 # Config
 # -------------------------
@@ -66,6 +68,23 @@ def validate_password_rules(pw):
         errors.append("Senha muito comum, escolha outra.")
     return errors
 
+
+# -------------------------
+# Functions
+# -------------------------
+
+
+def safe_json(data):
+    if not data:
+        return {}
+    try:
+        return json.loads(data)
+    except Exception:
+        return {}
+
+
+
+
 # -------------------------
 # Routes
 # -------------------------
@@ -110,7 +129,7 @@ def home():
             db.session.commit()
             login_user(novo)
             flash("Cadastro realizado com sucesso!", "success")
-            return redirect(url_for("nova_aventura"))
+            return redirect(url_for("lista_aventura"))
 
     # -------------------------
     # FORGOT PASSWORD
@@ -181,7 +200,13 @@ def nova_aventura():
             titulo=form.titulo.data,
             descricao=form.descricao.data,
             cenario=form.cenario.data,
-            status="preparacao",
+            status=form.status.data,
+            regras=safe_json(form.regras.data),
+            resumo_atual=form.resumo_atual.data,
+            ultimo_turno=safe_json(form.ultimo_turno.data),
+            metadados=safe_json(form.metadados.data),
+            estado_personagens=safe_json(form.estado_personagens.data),
+            estado_aventura=safe_json(form.estado_aventura.data),
             criador=current_user
         )
         db.session.add(aventura)
@@ -196,15 +221,34 @@ def editar_aventura(pk):
     aventura = Aventura.query.get_or_404(pk)
     if aventura.criador_id != current_user.id:
         abort(403)
-    form = AventuraForm(obj=aventura)
+
+    form = AventuraForm(
+        obj=aventura,
+        regras=json.dumps(aventura.regras or {}, indent=2),
+        ultimo_turno=json.dumps(aventura.ultimo_turno or {}, indent=2),
+        metadados=json.dumps(aventura.metadados or {}, indent=2),
+        estado_personagens=json.dumps(aventura.estado_personagens or {}, indent=2),
+        estado_aventura=json.dumps(aventura.estado_aventura or {}, indent=2)
+    )
+
     if form.validate_on_submit():
         aventura.titulo = form.titulo.data
         aventura.descricao = form.descricao.data
         aventura.cenario = form.cenario.data
+        aventura.status = form.status.data
+        aventura.regras = safe_json(form.regras.data)
+        aventura.resumo_atual = form.resumo_atual.data
+        aventura.ultimo_turno = safe_json(form.ultimo_turno.data)
+        aventura.metadados = safe_json(form.metadados.data)
+        aventura.estado_personagens = safe_json(form.estado_personagens.data)
+        aventura.estado_aventura = safe_json(form.estado_aventura.data)
+
         db.session.commit()
         flash("Aventura atualizada.", "success")
         return redirect(url_for("lista_aventuras"))
+
     return render_template("nova_aventura.html", form=form, editando=True)
+
 
 @app.route("/aventuras/<int:pk>/entrar/")
 @login_required
