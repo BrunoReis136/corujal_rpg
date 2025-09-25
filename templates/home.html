@@ -3,9 +3,12 @@
 {% block title %}Bem-vindo ao RPG{% endblock %}
 
 {% block content %}
+
+
 <div class="flex flex-col items-center justify-center h-full">
   <h2 class="text-3xl font-bold text-yellow-300 mb-6">🎲 Entre na Aventura</h2>
-
+  
+  <!-- Tabs -->
   <div class="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-md">
     <div class="flex justify-around mb-4">
       <button type="button" onclick="showForm('login', this)" class="tab-btn text-yellow-400 font-semibold">Login</button>
@@ -13,7 +16,7 @@
       <button type="button" onclick="showForm('forgot', this)" class="tab-btn text-gray-300 hover:text-yellow-400">Esqueci a senha</button>
     </div>
 
-    <!-- LOGIN FORM -->
+    <!-- Login Form -->
     <form id="login-form" class="form-block" method="post" action="{{ url_for('home') }}">
       {{ login_form.hidden_tag() }}
       <div class="mb-3">
@@ -22,10 +25,12 @@
       <div class="mb-3">
         {{ login_form.password(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Senha") }}
       </div>
-      <button type="submit" name="login_submit" class="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg">Login</button>
+      <div>
+        {{ login_form.submit(class_="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg") }}
+      </div>
     </form>
 
-    <!-- SIGNUP FORM -->
+    <!-- Signup Form -->
     <form id="signup-form" class="form-block hidden" method="post" action="{{ url_for('home') }}">
       {{ signup_form.hidden_tag() }}
       <div class="mb-3">
@@ -40,18 +45,20 @@
       <div class="mb-3">
         {{ signup_form.password2(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Confirme a Senha") }}
       </div>
-      {{ signup_form.recaptcha }}
-      <button type="submit" name="signup_submit" class="w-full bg-green-400 text-black font-bold py-2 rounded-lg">Cadastrar</button>
+      <div>
+        {{ signup_form.submit(class_="w-full bg-green-400 text-black font-bold py-2 rounded-lg") }}
+      </div>
     </form>
 
-    <!-- FORGOT PASSWORD FORM -->
+    <!-- Forgot Password Form -->
     <form id="forgot-form" class="form-block hidden" method="post" action="{{ url_for('home') }}">
       {{ forgot_form.hidden_tag() }}
       <div class="mb-3">
         {{ forgot_form.email(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Digite seu e-mail") }}
       </div>
-      {{ forgot_form.recaptcha }}
-      <button type="submit" name="forgot_submit" class="w-full bg-blue-400 text-black font-bold py-2 rounded-lg">Enviar</button>
+      <div>
+        {{ forgot_form.submit(class_="w-full bg-blue-400 text-black font-bold py-2 rounded-lg") }}
+      </div>
     </form>
   </div>
 </div>
@@ -76,19 +83,19 @@
 
 {% block scripts %}
 <script>
-function showForm(formId, el) {
-  document.querySelectorAll(".form-block").forEach(f => f.classList.add("hidden"));
-  document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("text-yellow-400"));
-  document.getElementById(formId + "-form").classList.remove("hidden");
-  el.classList.add("text-yellow-400");
-}
-
-// Mostrar login por padrão quando carregar a página
-document.addEventListener("DOMContentLoaded", () => {
-  const loginBtn = document.querySelector('[onclick*="login"]');
-  if (loginBtn) {
-    showForm("login", loginBtn);
+  function showForm(formId, el) {
+    document.querySelectorAll(".form-block").forEach(f => f.classList.add("hidden"));
+    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("text-yellow-400"));
+    document.getElementById(formId + "-form").classList.remove("hidden");
+    el.classList.add("text-yellow-400");
   }
-});
+
+  // Mostrar login por padrão quando carregar a página
+  document.addEventListener("DOMContentLoaded", () => {
+    const loginBtn = document.querySelector('[onclick*="login"]');
+    if (loginBtn) {
+      showForm("login", loginBtn);
+    }
+  });
 </script>
 {% endblock %}
