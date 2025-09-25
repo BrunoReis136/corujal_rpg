@@ -126,6 +126,7 @@ def home():
 
         if existente:
             flash("Usuário ou e-mail já cadastrado!", "danger")
+            return redirect(url_for("home"))
         else:
             novo = Usuario(username=username, email=email)
             novo.set_password(password)
@@ -146,7 +147,7 @@ def home():
             flash("Link de redefinição enviado para seu e-mail.", "success")
         else:
             flash("E-mail não encontrado.", "danger")
-        return redirect(url_for("home"))
+            return redirect(url_for("home"))
 
     return render_template(
         "home.html",
