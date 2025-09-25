@@ -5,8 +5,7 @@
 {% block content %}
 <div class="flex flex-col items-center justify-center h-full">
   <h2 class="text-3xl font-bold text-yellow-300 mb-6">🎲 Entre na Aventura</h2>
-  
-  <!-- Tabs -->
+
   <div class="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-md">
     <div class="flex justify-around mb-4">
       <button type="button" onclick="showForm('login', this)" class="tab-btn text-yellow-400 font-semibold">Login</button>
@@ -14,7 +13,7 @@
       <button type="button" onclick="showForm('forgot', this)" class="tab-btn text-gray-300 hover:text-yellow-400">Esqueci a senha</button>
     </div>
 
-    <!-- Login Form -->
+    <!-- LOGIN FORM -->
     <form id="login-form" class="form-block" method="post" action="{{ url_for('home') }}">
       {{ login_form.hidden_tag() }}
       <div class="mb-3">
@@ -23,12 +22,10 @@
       <div class="mb-3">
         {{ login_form.password(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Senha") }}
       </div>
-      <div>
-        <button type="submit" name="login_submit" class="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg">Login</button>
-      </div>
+      <button type="submit" name="login_submit" class="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg">Login</button>
     </form>
 
-    <!-- Signup Form -->
+    <!-- SIGNUP FORM -->
     <form id="signup-form" class="form-block hidden" method="post" action="{{ url_for('home') }}">
       {{ signup_form.hidden_tag() }}
       <div class="mb-3">
@@ -43,43 +40,55 @@
       <div class="mb-3">
         {{ signup_form.password2(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Confirme a Senha") }}
       </div>
-
       {{ signup_form.recaptcha }}
-
-      <div>
-        <button type="submit" name="signup_submit" class="w-full bg-green-400 text-black font-bold py-2 rounded-lg">Cadastrar</button>
-      </div>
+      <button type="submit" name="signup_submit" class="w-full bg-green-400 text-black font-bold py-2 rounded-lg">Cadastrar</button>
     </form>
 
-    <!-- Forgot Password Form -->
+    <!-- FORGOT PASSWORD FORM -->
     <form id="forgot-form" class="form-block hidden" method="post" action="{{ url_for('home') }}">
       {{ forgot_form.hidden_tag() }}
       <div class="mb-3">
         {{ forgot_form.email(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Digite seu e-mail") }}
       </div>
-
       {{ forgot_form.recaptcha }}
-
-      <div>
-        <button type="submit" name="forgot_submit" class="w-full bg-blue-400 text-black font-bold py-2 rounded-lg">Enviar</button>
-      </div>
+      <button type="submit" name="forgot_submit" class="w-full bg-blue-400 text-black font-bold py-2 rounded-lg">Enviar</button>
     </form>
   </div>
 </div>
 {% endblock %}
 
+{% block sidebar %}
+<nav class="flex flex-col h-full gap-2 p-2 bg-gray-800 rounded-xl shadow-md">
+  <a href="{{ url_for('home') }}" class="flex-1 flex items-center justify-center px-4 py-2 rounded-lg border-2 border-gray-600 hover:border-yellow-400 bg-gray-700 text-gray-200 hover:bg-yellow-500 hover:text-black font-bold text-xl transition-all duration-300 transform hover:scale-105">
+    🏠 Home
+  </a>
+  <a href="{{ url_for('sobre') }}" class="flex-1 flex items-center justify-center px-4 py-2 rounded-lg border-2 border-gray-600 hover:border-yellow-400 bg-gray-700 text-gray-200 hover:bg-yellow-500 hover:text-black font-bold text-xl transition-all duration-300 transform hover:scale-105">
+    📖 Sobre
+  </a>
+  <a href="{{ url_for('contato') }}" class="flex-1 flex items-center justify-center px-4 py-2 rounded-lg border-2 border-gray-600 hover:border-yellow-400 bg-gray-700 text-gray-200 hover:bg-yellow-500 hover:text-black font-bold text-xl transition-all duration-300 transform hover:scale-105">
+    ✉️ Contato
+  </a>
+  <a href="{{ url_for('servicos') }}" class="flex-1 flex items-center justify-center px-4 py-2 rounded-lg border-2 border-gray-600 hover:border-yellow-400 bg-gray-700 text-gray-200 hover:bg-yellow-500 hover:text-black font-bold text-xl transition-all duration-300 transform hover:scale-105">
+    ⚙️ Serviços
+  </a>
+</nav>
+{% endblock %}
+
 {% block scripts %}
 <script>
-  function showForm(formId, el) {
-    document.querySelectorAll(".form-block").forEach(f => f.classList.add("hidden"));
-    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("text-yellow-400"));
-    document.getElementById(formId + "-form").classList.remove("hidden");
-    el.classList.add("text-yellow-400");
-  }
+function showForm(formId, el) {
+  document.querySelectorAll(".form-block").forEach(f => f.classList.add("hidden"));
+  document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("text-yellow-400"));
+  document.getElementById(formId + "-form").classList.remove("hidden");
+  el.classList.add("text-yellow-400");
+}
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const loginBtn = document.querySelector('[onclick*="login"]');
-    if (loginBtn) showForm("login", loginBtn);
-  });
+// Mostrar login por padrão quando carregar a página
+document.addEventListener("DOMContentLoaded", () => {
+  const loginBtn = document.querySelector('[onclick*="login"]');
+  if (loginBtn) {
+    showForm("login", loginBtn);
+  }
+});
 </script>
 {% endblock %}
