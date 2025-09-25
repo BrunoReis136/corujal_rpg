@@ -131,25 +131,19 @@ def home():
             flash("Cadastro realizado com sucesso!", "success")
             return redirect(url_for("lista_aventuras"))
 
-    # -------------------------
-    # FORGOT PASSWORD
-    # -------------------------
-    if forgot_form.validate_on_submit() and forgot_form.submit.data:
-        user = Usuario.query.filter_by(email=forgot_form.email.data).first()
+
+
+@app.route("/forgot-password/", methods=["POST"])
+def forgot_password():
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        user = Usuario.query.filter_by(email=form.email.data).first()
         if user:
-            # você já tem a função send_password_reset_email
             send_password_reset_email(user)
             flash("Link de redefinição enviado para seu e-mail.", "success")
         else:
             flash("E-mail não encontrado.", "danger")
-        return redirect(url_for("home"))
-
-    return render_template(
-        "home.html",
-        login_form=login_form,
-        signup_form=signup_form,
-        forgot_form=forgot_form
-    )
+    return redirect(url_for("home"))
 
 
 @app.route("/logout/")
