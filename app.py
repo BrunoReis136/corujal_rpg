@@ -129,7 +129,7 @@ def home():
             db.session.commit()
             login_user(novo)
             flash("Cadastro realizado com sucesso!", "success")
-            return redirect(url_for("lista_aventura"))
+            return redirect(url_for("lista_aventuras"))
 
     # -------------------------
     # FORGOT PASSWORD
