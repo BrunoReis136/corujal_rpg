@@ -3,6 +3,7 @@ from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from itsdangerous import URLSafeTimedSerializer
 
 db = SQLAlchemy()
 
@@ -31,6 +32,25 @@ class Usuario(db.Model, UserMixin):
 
     def __repr__(self):
         return f"<Usuario {self.username}>"
+
+     # -----------------------------
+    # RESET DE SENHA
+    # -----------------------------
+    def get_reset_token(self, expires_sec=3600):
+        """Gera um token seguro para redefinição de senha"""
+        s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        return s.dumps({"user_id": self.id})
+
+    @staticmethod
+    def verify_reset_token(token, expires_sec=3600):
+        """Verifica o token e retorna o usuário se válido"""
+        s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        try:
+            data = s.loads(token, max_age=expires_sec)
+            user_id = data.get("user_id")
+        except Exception:
+            return None
+        return Usuario.query.get(user_id)
 
 # Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 class Personagem(db.Model):
