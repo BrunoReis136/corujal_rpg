@@ -30,10 +30,6 @@ app.config["MAIL_USERNAME"] = os.getenv("MAIL_USER")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASS")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_TO", app.config["MAIL_USERNAME"])
 
-#Recaptcha configs
-app.config["RECAPTCHA_PUBLIC_KEY"] = os.getenv("RECAPTCHA_SITE_KEY")
-app.config["RECAPTCHA_PRIVATE_KEY"] = os.getenv("RECAPTCHA_SECRET_KEY")
-
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Token serializer for password reset
@@ -102,7 +98,7 @@ def home():
     # -------------------------
     # LOGIN
     # -------------------------
-    if "login_submit" in request.form and login_form.validate():
+    if login_form.validate_on_submit() and login_form.submit.data:
         user = Usuario.query.filter_by(username=login_form.username.data).first()
         if user and user.check_password(login_form.password.data):
             login_user(user)
@@ -115,7 +111,7 @@ def home():
     # -------------------------
     # SIGNUP
     # -------------------------
-    if "signup_submit" in request.form and signup_form.validate():
+    if signup_form.validate_on_submit() and signup_form.submit.data:
         username = signup_form.username.data
         email = signup_form.email.data
         password = signup_form.password1.data
@@ -126,22 +122,22 @@ def home():
 
         if existente:
             flash("Usuário ou e-mail já cadastrado!", "danger")
-            return redirect(url_for("home"))
-
-        novo = Usuario(username=username, email=email)
-        novo.set_password(password)
-        db.session.add(novo)
-        db.session.commit()
-        login_user(novo)
-        flash("Cadastro realizado com sucesso!", "success")
-        return redirect(url_for("lista_aventuras"))
+        else:
+            novo = Usuario(username=username, email=email)
+            novo.set_password(password)
+            db.session.add(novo)
+            db.session.commit()
+            login_user(novo)
+            flash("Cadastro realizado com sucesso!", "success")
+            return redirect(url_for("lista_aventuras"))
 
     # -------------------------
     # FORGOT PASSWORD
     # -------------------------
-    if "forgot_submit" in request.form and forgot_form.validate():
+    if forgot_form.validate_on_submit() and forgot_form.submit.data:
         user = Usuario.query.filter_by(email=forgot_form.email.data).first()
         if user:
+            # você já tem a função send_password_reset_email
             send_password_reset_email(user)
             flash("Link de redefinição enviado para seu e-mail.", "success")
         else:
@@ -154,7 +150,6 @@ def home():
         signup_form=signup_form,
         forgot_form=forgot_form
     )
-
 
 
 @app.route("/logout/")
