@@ -51,7 +51,7 @@
     </form>
 
     <!-- Forgot Password Form -->
-    <form id="forgot-form" class="form-block hidden" method="post" action="{{ url_for('home') }}">
+    <form id="forgot-form" class="form-block hidden" method="post" action="{{ url_for('forgot_password') }}">
       {{ forgot_form.hidden_tag() }}
       <div class="mb-3">
         {{ forgot_form.email(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Digite seu e-mail") }}
