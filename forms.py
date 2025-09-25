@@ -1,4 +1,4 @@
-from flask_wtf import FlaskForm, RecaptchaField
+from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 
@@ -15,7 +15,6 @@ class SignupForm(FlaskForm):
     email = StringField("E-mail", validators=[DataRequired(), Email()])
     password1 = PasswordField("Senha", validators=[DataRequired(), Length(min=6)])
     password2 = PasswordField("Confirme a senha", validators=[DataRequired(), EqualTo('password1')])
-    recaptcha = RecaptchaField()
     submit = SubmitField("Cadastrar")
 
 class AventuraForm(FlaskForm):
@@ -42,7 +41,6 @@ class AventuraForm(FlaskForm):
 
 class ForgotPasswordForm(FlaskForm):
     email = StringField("E-mail", validators=[DataRequired(), Email()])
-    recaptcha = RecaptchaField()
     submit = SubmitField("Enviar")
 
 class SetPasswordForm(FlaskForm):
