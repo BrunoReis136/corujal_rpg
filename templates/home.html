@@ -3,8 +3,6 @@
 {% block title %}Bem-vindo ao RPG{% endblock %}
 
 {% block content %}
-
-
 <div class="flex flex-col items-center justify-center h-full">
   <h2 class="text-3xl font-bold text-yellow-300 mb-6">🎲 Entre na Aventura</h2>
   
@@ -26,7 +24,7 @@
         {{ login_form.password(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Senha") }}
       </div>
       <div>
-        {{ login_form.submit(class_="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg", value="login_submit") }}
+        <button type="submit" name="login_submit" class="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg">Login</button>
       </div>
     </form>
 
@@ -43,13 +41,13 @@
         {{ signup_form.password1(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Senha") }}
       </div>
       <div class="mb-3">
-        {{ signup_form.password2(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Confirme a Senha" ) }}
+        {{ signup_form.password2(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Confirme a Senha") }}
       </div>
-      
+
       {{ signup_form.recaptcha }}
-      
+
       <div>
-        {{ signup_form.submit(class_="w-full bg-green-400 text-black font-bold py-2 rounded-lg", value="signup_submit") }}
+        <button type="submit" name="signup_submit" class="w-full bg-green-400 text-black font-bold py-2 rounded-lg">Cadastrar</button>
       </div>
     </form>
 
@@ -59,32 +57,15 @@
       <div class="mb-3">
         {{ forgot_form.email(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Digite seu e-mail") }}
       </div>
-      
+
       {{ forgot_form.recaptcha }}
-      
+
       <div>
-        {{ forgot_form.submit(class_="w-full bg-blue-400 text-black font-bold py-2 rounded-lg", value="forgot_submit") }}
+        <button type="submit" name="forgot_submit" class="w-full bg-blue-400 text-black font-bold py-2 rounded-lg">Enviar</button>
       </div>
     </form>
   </div>
 </div>
-{% endblock %}
-
-{% block sidebar %}
-<nav class="flex flex-col h-full gap-2 p-2 bg-gray-800 rounded-xl shadow-md">
-  <a href="{{ url_for('home') }}" class="flex-1 flex items-center justify-center px-4 py-2 rounded-lg border-2 border-gray-600 hover:border-yellow-400 bg-gray-700 text-gray-200 hover:bg-yellow-500 hover:text-black font-bold text-xl transition-all duration-300 transform hover:scale-105">
-    🏠 Home
-  </a>
-  <a href="{{ url_for('sobre') }}" class="flex-1 flex items-center justify-center px-4 py-2 rounded-lg border-2 border-gray-600 hover:border-yellow-400 bg-gray-700 text-gray-200 hover:bg-yellow-500 hover:text-black font-bold text-xl transition-all duration-300 transform hover:scale-105">
-    📖 Sobre
-  </a>
-  <a href="{{ url_for('contato') }}" class="flex-1 flex items-center justify-center px-4 py-2 rounded-lg border-2 border-gray-600 hover:border-yellow-400 bg-gray-700 text-gray-200 hover:bg-yellow-500 hover:text-black font-bold text-xl transition-all duration-300 transform hover:scale-105">
-    ✉️ Contato
-  </a>
-  <a href="{{ url_for('servicos') }}" class="flex-1 flex items-center justify-center px-4 py-2 rounded-lg border-2 border-gray-600 hover:border-yellow-400 bg-gray-700 text-gray-200 hover:bg-yellow-500 hover:text-black font-bold text-xl transition-all duration-300 transform hover:scale-105">
-    ⚙️ Serviços
-  </a>
-</nav>
 {% endblock %}
 
 {% block scripts %}
@@ -96,13 +77,9 @@
     el.classList.add("text-yellow-400");
   }
 
-  // Mostrar login por padrão quando carregar a página
   document.addEventListener("DOMContentLoaded", () => {
     const loginBtn = document.querySelector('[onclick*="login"]');
-    if (loginBtn) {
-      showForm("login", loginBtn);
-    }
+    if (loginBtn) showForm("login", loginBtn);
   });
 </script>
 {% endblock %}
-
