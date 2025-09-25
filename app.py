@@ -131,6 +131,13 @@ def home():
             flash("Cadastro realizado com sucesso!", "success")
             return redirect(url_for("lista_aventuras"))
 
+    
+     return render_template(
+        "home.html",
+        login_form=login_form,
+        signup_form=signup_form,
+        forgot_form=forgot_form
+    )
 
 
 @app.route("/forgot-password/", methods=["POST"])
