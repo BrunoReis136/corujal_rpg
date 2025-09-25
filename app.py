@@ -30,6 +30,10 @@ app.config["MAIL_USERNAME"] = os.getenv("MAIL_USER")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASS")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_TO", app.config["MAIL_USERNAME"])
 
+#Recaptcha configs
+app.config["RECAPTCHA_PUBLIC_KEY"] = os.getenv("RECAPTCHA_SITE_KEY")
+app.config["RECAPTCHA_PRIVATE_KEY"] = os.getenv("RECAPTCHA_SECRET_KEY")
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Token serializer for password reset
