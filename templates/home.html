@@ -31,7 +31,7 @@
     </form>
 
     <!-- Signup Form -->
-    <form id="signup-form" class="form-block hidden" method="post" action="{{ url_for('home') }}">
+    <form id="signup-form" class="form-block hidden" method="post" action="{{ url_for('signup') }}">
       {{ signup_form.hidden_tag() }}
       <div class="mb-3">
         {{ signup_form.username(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Usuário") }}
