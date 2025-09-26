@@ -8,6 +8,7 @@ from itsdangerous import URLSafeTimedSerializer
 from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPasswordForm
 from models import db, Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 from sqlalchemy import text
+from flask_mail import Mail
 
 
 import json
@@ -21,7 +22,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config['SERVER_NAME'] = 'corujal-rpg.onrender.com'
+# app.config['SERVER_NAME'] = 'corujal-rpg.onrender.com'
 
 # Mail
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
@@ -43,6 +44,7 @@ db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login = "home"
 
+mail = Mail(app)
 
 with app.app_context():
     db.create_all()
@@ -53,6 +55,8 @@ with app.app_context():
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
+
+
 
 # -------------------------
 # Password validation
