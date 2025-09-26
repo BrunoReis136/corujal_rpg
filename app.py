@@ -22,6 +22,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config['SERVER_NAME'] = 'corujal-rpg.onrender.com'
 
 # Mail
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
@@ -42,7 +43,7 @@ serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login = "home"
-mail = Mail(app)
+
 
 with app.app_context():
     db.create_all()
@@ -108,7 +109,7 @@ def send_password_reset_email(user):
             smtp.send_message(email)
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
-        raise
+        flash(f"Não foi possível enviar o e-mail de redefinição. Tente novamente mais tarde.\nErro: {e}", "danger")
 
 
 # -------------------------
