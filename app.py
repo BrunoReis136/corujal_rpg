@@ -8,7 +8,7 @@ from itsdangerous import URLSafeTimedSerializer
 from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPasswordForm
 from models import db, Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 from sqlalchemy import text
-from flask_mail import Mail
+from flask_mail import Mail, Message
 
 
 import json
