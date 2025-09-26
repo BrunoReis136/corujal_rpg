@@ -102,6 +102,34 @@ def send_password_reset_email(user):
 # Routes
 # -------------------------
 
+@app.route("/", methods=["GET", "POST"])
+def home():
+    login_form = LoginForm()
+    signup_form = SignupForm()
+    forgot_form = ForgotPasswordForm()
+
+    # -------------------------
+    # LOGIN
+    # -------------------------
+    if login_form.validate_on_submit() and login_form.submit.data:
+        user = Usuario.query.filter_by(username=login_form.username.data).first()
+        if user and user.check_password(login_form.password.data):
+            login_user(user)
+            flash(f"Bem-vindo, {user.username}!", "success")
+            next_url = request.args.get("next") or url_for("lista_aventuras")
+            return redirect(next_url)
+        flash("Usuário ou senha incorretos.", "danger")
+        return redirect(url_for("home"))
+
+    # Obs: signup_form e forgot_form não são tratados aqui.
+    return render_template(
+        "home.html",
+        login_form=login_form,
+        signup_form=signup_form,
+        forgot_form=forgot_form
+    )
+
+
 @app.route("/signup", methods=["POST"])
 def signup():
     form = SignupForm()
