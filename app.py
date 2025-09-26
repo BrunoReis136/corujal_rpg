@@ -4,11 +4,12 @@ from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, request, flash, session, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPasswordForm
 from models import db, Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 from sqlalchemy import text
+import smtplib
+from email.message import EmailMessage
 
 import json
 
@@ -82,20 +83,32 @@ def safe_json(data):
     except Exception:
         return {}
 
+# -------------------------
+# Função de envio de email
+# -------------------------
 def send_password_reset_email(user):
     token = serializer.dumps(user.email, salt="password-reset-salt")
     reset_url = url_for("password_reset_confirm", token=token, _external=True)
 
-    msg = Message(
-        subject="Redefinição de senha",
-        recipients=[user.email]
-    )
-    msg.html = render_template(
-        "password_reset_email.html",
-        user=user,
-        reset_url=reset_url
-    )
-    mail.send(msg)
+    email = EmailMessage()
+    email['Subject'] = 'Redefinição de senha'
+    email['From'] = os.getenv("MAIL_USER")
+    email['To'] = user.email
+
+    # Conteúdo texto
+    email.set_content(f"Olá {user.username},\n\nPara redefinir sua senha, clique no link abaixo:\n{reset_url}\n\nSe você não solicitou, ignore este email.")
+
+    # Conteúdo HTML
+    email.add_alternative(render_template("password_reset_email.html", user=user, reset_url=reset_url), subtype='html')
+
+    try:
+        # Conexão segura com Gmail (SMTP_SSL)
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(os.getenv("MAIL_USER"), os.getenv("MAIL_PASS"))
+            smtp.send_message(email)
+    except Exception as e:
+        print(f"Erro ao enviar e-mail: {e}")
+        raise
 
 
 # -------------------------
@@ -158,18 +171,26 @@ def signup():
     return redirect(url_for("home"))
 
 
+# -------------------------
+# Rota de recuperação
+# -------------------------
 @app.route("/forgot-password/", methods=["POST"])
 def forgot_password():
     form = ForgotPasswordForm()
     if form.validate_on_submit():
         user = Usuario.query.filter_by(email=form.email.data).first()
         if user:
-            send_password_reset_email(user)
-            flash("Link de redefinição enviado para seu e-mail.", "success")
-            return render_template("password_reset_done.html")
+            try:
+                send_password_reset_email(user)
+                flash("Link de redefinição enviado para seu e-mail.", "success")
+                return render_template("password_reset_done.html")
+            except Exception as e:
+                flash(f"Erro ao enviar e-mail: {e}", "danger")
+                return redirect(url_for("home"))
         else:
             flash("E-mail não encontrado.", "danger")
             return redirect(url_for("home"))
+    flash("Formulário inválido.", "danger")
     return redirect(url_for("home"))
 
 
