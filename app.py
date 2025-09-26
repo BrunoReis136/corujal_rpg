@@ -278,23 +278,7 @@ def excluir_aventura(pk):
         return redirect(url_for("lista_aventuras"))
     return render_template("confirma_exclusao.html", aventura=aventura)
 
-# -------------------------
-# Password reset flow
-# -------------------------
-def send_password_reset_email(user):
-    token = serializer.dumps(user.email, salt="password-reset-salt")
-    reset_url = url_for("password_reset_confirm", token=token, _external=True)
 
-    msg = Message(
-        subject="Redefinição de senha",
-        recipients=[user.email]
-    )
-    msg.html = render_template(
-        "password_reset_email.html",
-        user=user,
-        reset_url=reset_url
-    )
-    mail.send(msg)
 
 
 
