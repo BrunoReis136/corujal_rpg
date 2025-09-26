@@ -82,39 +82,33 @@ def safe_json(data):
     except Exception:
         return {}
 
+def send_password_reset_email(user):
+    token = serializer.dumps(user.email, salt="password-reset-salt")
+    reset_url = url_for("password_reset_confirm", token=token, _external=True)
 
+    msg = Message(
+        subject="Redefinição de senha",
+        recipients=[user.email]
+    )
+    msg.html = render_template(
+        "password_reset_email.html",
+        user=user,
+        reset_url=reset_url
+    )
+    mail.send(msg)
 
 
 # -------------------------
 # Routes
 # -------------------------
 
-@app.route("/", methods=["GET", "POST"])
-def home():
-    login_form = LoginForm()
-    signup_form = SignupForm()
-    forgot_form = ForgotPasswordForm()
-
-    # -------------------------
-    # LOGIN
-    # -------------------------
-    if login_form.validate_on_submit() and login_form.submit.data:
-        user = Usuario.query.filter_by(username=login_form.username.data).first()
-        if user and user.check_password(login_form.password.data):
-            login_user(user)
-            flash(f"Bem-vindo, {user.username}!", "success")
-            next_url = request.args.get("next") or url_for("lista_aventuras")
-            return redirect(next_url)
-        flash("Usuário ou senha incorretos.", "danger")
-        return redirect(url_for("home"))
-
-    # -------------------------
-    # SIGNUP
-    # -------------------------
-    if signup_form.validate_on_submit() and signup_form.submit.data:
-        username = signup_form.username.data
-        email = signup_form.email.data
-        password = signup_form.password1.data
+@app.route("/signup", methods=["POST"])
+def signup():
+    form = SignupForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        email = form.email.data
+        password = form.password1.data
 
         existente = Usuario.query.filter(
             (Usuario.username == username) | (Usuario.email == email)
@@ -122,6 +116,7 @@ def home():
 
         if existente:
             flash("Usuário ou e-mail já cadastrado!", "danger")
+            return redirect(url_for("home"))
         else:
             novo = Usuario(username=username, email=email)
             novo.set_password(password)
@@ -131,13 +126,8 @@ def home():
             flash("Cadastro realizado com sucesso!", "success")
             return redirect(url_for("lista_aventuras"))
 
-    return render_template(
-        "home.html",
-        login_form=login_form,
-        signup_form=signup_form,
-        forgot_form=forgot_form
-    )
-
+    flash("Erro ao processar cadastro.", "danger")
+    return redirect(url_for("home"))
 
 
 @app.route("/forgot-password/", methods=["POST"])
@@ -148,8 +138,10 @@ def forgot_password():
         if user:
             send_password_reset_email(user)
             flash("Link de redefinição enviado para seu e-mail.", "success")
+            return render_template("password_reset_done.html")
         else:
             flash("E-mail não encontrado.", "danger")
+            return redirect(url_for("home"))
     return redirect(url_for("home"))
 
 
@@ -288,16 +280,19 @@ def password_reset_confirm(token):
 
     user = Usuario.query.filter_by(email=email).first_or_404()
     form = SetPasswordForm()
+
     if form.validate_on_submit():
         errors = validate_password_rules(form.new_password1.data)
         if errors:
             for e in errors:
                 flash(e, "danger")
             return redirect(url_for("password_reset_confirm", token=token))
+
         user.set_password(form.new_password1.data)
         db.session.commit()
         flash("Senha redefinida com sucesso.", "success")
-        return redirect(url_for("home"))
+        return render_template("password_reset_complete.html")
+
     return render_template("password_reset_confirm.html", form=form)
 
 
