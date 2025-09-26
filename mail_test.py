@@ -1,7 +1,7 @@
 import smtplib
 
-user = "seuemail@gmail.com"
-app_password = "XXXXXXXXXXXXXXXX"
+user = "brunohreis136@gmail.com"
+app_password = "ghnjadegvmvslyst"
 
 try:
     with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
