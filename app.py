@@ -200,17 +200,26 @@ def logout():
 @login_required
 def dashboard():
     participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
+
     if not participacao:
         flash("Você ainda não participa de nenhuma aventura.", "warning")
-        return redirect(url_for("home"))
+        return redirect(url_for("lista_aventuras"))
 
     personagem = participacao.personagem
     aventura = participacao.aventura
-    mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id).order_by(HistoricoMensagens.criado_em.asc()).all()
-    ultima_sessao = Sessao.query.filter_by(aventura_id=aventura.id).order_by(Sessao.criado_em.desc()).first()
+
+    mensagens = HistoricoMensagens.query \
+        .filter_by(aventura_id=aventura.id) \
+        .order_by(HistoricoMensagens.criado_em.asc()) \
+        .all()
+
+    ultima_sessao = Sessao.query \
+        .filter_by(aventura_id=aventura.id) \
+        .order_by(Sessao.criado_em.desc()) \
+        .first()
 
     turno_form = TurnoForm()
-    personagem_form = PersonagemForm()  # usado apenas se personagem for None
+    personagem_form = PersonagemForm()  # Usado se personagem for None
 
     return render_template(
         "dashboard.html",
@@ -221,6 +230,7 @@ def dashboard():
         form=turno_form,
         personagem_form=personagem_form
     )
+
 
 
 @app.route("/acao/", methods=["POST"])
@@ -262,6 +272,18 @@ def nova_aventura():
         )
         db.session.add(aventura)
         db.session.commit()
+
+        # Adicionar o criador como participante
+        participacao = Participacao(
+            usuario_id=current_user.id,
+            aventura_id=aventura.id,
+            personagem_id=None,  # Vai criar depois na dashboard
+            papel="Jogador"  # ou "Mestre", dependendo do seu sistema
+        )
+        db.session.add(participacao)
+        db.session.commit()
+
+        
         flash("Aventura criada.", "success")
         return redirect(url_for("lista_aventuras"))
     return render_template("nova_aventura.html", form=form)
@@ -296,22 +318,25 @@ def editar_aventura(pk):
 @login_required
 def entrar_aventura(pk):
     aventura = Aventura.query.get_or_404(pk)
+
+    participacao = Participacao.query.filter_by(
+        usuario_id=current_user.id,
+        aventura_id=aventura.id
+    ).first()
+
+    if not participacao:
+        nova_participacao = Participacao(
+            usuario_id=current_user.id,
+            aventura_id=aventura.id,
+            personagem_id=None,
+            papel="Jogador"
+        )
+        db.session.add(nova_participacao)
+        db.session.commit()
+
     session["aventura_id"] = aventura.id
     flash(f"Entrou na aventura: {aventura.titulo}", "success")
     return redirect(url_for("dashboard"))
-
-@app.route("/aventuras/<int:pk>/excluir/", methods=["GET", "POST"])
-@login_required
-def excluir_aventura(pk):
-    aventura = Aventura.query.get_or_404(pk)
-    if aventura.criador_id != current_user.id:
-        abort(403)
-    if request.method == "POST":
-        db.session.delete(aventura)
-        db.session.commit()
-        flash("Aventura excluída.", "success")
-        return redirect(url_for("lista_aventuras"))
-    return render_template("confirma_exclusao.html", aventura=aventura)
 
 
 
@@ -398,7 +423,7 @@ def enviar_turno():
         participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
         if not participacao:
             flash("Você não está participando de nenhuma aventura.", "danger")
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("aventuras"))
 
         aventura = participacao.aventura
         personagem = participacao.personagem
@@ -491,7 +516,7 @@ def criar_personagem():
     participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
     if not participacao:
         flash("Você não participa de nenhuma aventura.", "danger")
-        return redirect(url_for("home"))
+        return redirect(url_for("aventuras"))
 
     aventura = participacao.aventura
 
