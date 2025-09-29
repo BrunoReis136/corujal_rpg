@@ -5,7 +5,7 @@ from flask import Flask, render_template, redirect, url_for, request, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from itsdangerous import URLSafeTimedSerializer
-from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPasswordForm
+from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPasswordForm, TurnoForm
 from models import db, Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 from sqlalchemy import text
 from flask_mail import Mail, Message
