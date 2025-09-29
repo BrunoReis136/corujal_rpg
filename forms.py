@@ -5,6 +5,12 @@ from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 # -------------------------
 # Forms
 # -------------------------
+
+class TurnoForm(FlaskForm):
+    acao = TextAreaField("Ação do Jogador", validators=[DataRequired(), Length(min=1, max=1000)])
+    contexto = TextAreaField("Contexto do Turno", validators=[Length(max=2000)])
+    submit = SubmitField("Enviar Turno")
+
 class LoginForm(FlaskForm):
     username = StringField("Usuário", validators=[DataRequired()])
     password = PasswordField("Senha", validators=[DataRequired()])
