@@ -196,31 +196,32 @@ def logout():
     flash("Você saiu da conta.", "info")
     return redirect(url_for("home"))
 
-@app.route("/dashboard", methods=["GET", "POST"])
+@app.route("/dashboard")
 @login_required
 def dashboard():
-    form = TurnoForm()
-
-    # Recupera personagem e aventura do jogador logado
     participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
-    personagem = participacao.personagem if participacao else None
-    aventura = participacao.aventura if participacao else None
+    if not participacao:
+        flash("Você ainda não participa de nenhuma aventura.", "warning")
+        return redirect(url_for("home"))
 
-    # Mensagens da aventura
-    mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id).order_by(HistoricoMensagens.criado_em.asc()).all() if aventura else []
+    personagem = participacao.personagem
+    aventura = participacao.aventura
+    mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id).order_by(HistoricoMensagens.criado_em.asc()).all()
+    ultima_sessao = Sessao.query.filter_by(aventura_id=aventura.id).order_by(Sessao.criado_em.desc()).first()
 
-    # Última sessão (turno)
-    ultima_sessao = Sessao.query.filter_by(aventura_id=aventura.id).order_by(Sessao.criado_em.desc()).first() if aventura else None
+    turno_form = TurnoForm()
+    personagem_form = PersonagemForm()  # usado apenas se personagem for None
 
     return render_template(
         "dashboard.html",
-        form=form,
         personagem=personagem,
         aventura=aventura,
         mensagens=mensagens,
-        ultima_sessao=ultima_sessao
+        ultima_sessao=ultima_sessao,
+        form=turno_form,
+        personagem_form=personagem_form
     )
-    
+
 
 @app.route("/acao/", methods=["POST"])
 @login_required
@@ -475,6 +476,110 @@ def enviar_turno():
         flash("Erro no envio do formulário.", "danger")
 
     return redirect(url_for("dashboard"))
+
+
+
+@app.route("/criar_personagem", methods=["POST"])
+@login_required
+def criar_personagem():
+    form = PersonagemForm()
+
+    if not form.validate_on_submit():
+        flash("Erro ao validar o formulário de personagem.", "danger")
+        return redirect(url_for("dashboard"))
+
+    participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
+    if not participacao:
+        flash("Você não participa de nenhuma aventura.", "danger")
+        return redirect(url_for("home"))
+
+    aventura = participacao.aventura
+
+    atributos = {
+        "Força": form.forca.data,
+        "Destreza": form.destreza.data,
+        "Inteligência": form.inteligencia.data
+    }
+
+    novo_personagem = Personagem(
+        nome=form.nome.data,
+        classe=form.classe.data,
+        raca=form.raca.data,
+        atributos=atributos,
+        usuario_id=current_user.id
+    )
+
+    db.session.add(novo_personagem)
+    db.session.commit()
+
+    participacao.personagem_id = novo_personagem.id
+    db.session.commit()
+
+    # Prompt inicial
+    import json
+    prompt_inicial = f"""
+Você é o mestre de uma campanha de RPG de mesa online. Um novo personagem acaba de ser criado e vai iniciar sua jornada.
+
+📜 Aventura:
+Título: {aventura.titulo}
+Descrição: {aventura.descricao}
+Cenário: {aventura.cenario}
+Regras relevantes:
+{json.dumps(aventura.regras, ensure_ascii=False, indent=2)}
+
+🧝 Personagem criado:
+Nome: {novo_personagem.nome}
+Classe: {novo_personagem.classe}
+Raça: {novo_personagem.raca}
+Nível: {novo_personagem.nivel}
+Atributos:
+{json.dumps(novo_personagem.atributos, ensure_ascii=False, indent=2)}
+
+🎯 Sua tarefa:
+Crie a introdução da história dessa aventura incluindo este personagem de forma natural, imersiva e envolvente, sem mencionar que foi gerado por IA. Faça parecer o início de uma sessão de RPG conduzida por um mestre humano.
+"""
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Você é um mestre de RPG, narrando a aventura para os jogadores."},
+                {"role": "user", "content": prompt_inicial}
+            ],
+            temperature=0.8,
+            max_tokens=800
+        )
+
+        narrativa_inicial = response.choices[0].message.content.strip()
+
+        nova_sessao = Sessao(
+            aventura_id=aventura.id,
+            narrador_ia=narrativa_inicial,
+            resultado=narrativa_inicial,
+            acoes_jogadores=[],
+            prompt_usado=prompt_inicial,
+            resposta_bruta=str(response)
+        )
+        db.session.add(nova_sessao)
+
+        mensagem_mestre = HistoricoMensagens(
+            usuario_id=None,
+            aventura_id=aventura.id,
+            mensagem=narrativa_inicial,
+            autor="Mestre IA"
+        )
+        db.session.add(mensagem_mestre)
+
+        aventura.ultimo_turno = {"texto": narrativa_inicial}
+        db.session.commit()
+
+        flash("Personagem criado e aventura iniciada com sucesso!", "success")
+    except Exception as e:
+        flash(f"Erro ao iniciar a aventura com IA: {e}", "danger")
+
+    return redirect(url_for("dashboard"))
+
+
 
 
 
