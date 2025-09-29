@@ -196,13 +196,31 @@ def logout():
     flash("Você saiu da conta.", "info")
     return redirect(url_for("home"))
 
-@app.route("/dashboard/")
+@app.route("/dashboard", methods=["GET", "POST"])
 @login_required
 def dashboard():
-    narrativa = session.get("narrativa", ["Bem-vindo à aventura, herói!", "O mestre IA aguarda sua primeira ação."])
-    jogador = {"hp": 100, "mp": 50}
-    turno = session.get("turno", 1)
-    return render_template("dashboard.html", narrativa=narrativa, jogador=jogador, turno=turno)
+    form = TurnoForm()
+
+    # Recupera personagem e aventura do jogador logado
+    participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
+    personagem = participacao.personagem if participacao else None
+    aventura = participacao.aventura if participacao else None
+
+    # Mensagens da aventura
+    mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id).order_by(HistoricoMensagens.criado_em.asc()).all() if aventura else []
+
+    # Última sessão (turno)
+    ultima_sessao = Sessao.query.filter_by(aventura_id=aventura.id).order_by(Sessao.criado_em.desc()).first() if aventura else None
+
+    return render_template(
+        "dashboard.html",
+        form=form,
+        personagem=personagem,
+        aventura=aventura,
+        mensagens=mensagens,
+        ultima_sessao=ultima_sessao
+    )
+    
 
 @app.route("/acao/", methods=["POST"])
 @login_required
