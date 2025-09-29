@@ -338,6 +338,18 @@ def entrar_aventura(pk):
     flash(f"Entrou na aventura: {aventura.titulo}", "success")
     return redirect(url_for("dashboard"))
 
+@app.route("/aventuras/<int:pk>/excluir/", methods=["GET", "POST"])
+@login_required
+def excluir_aventura(pk):
+    aventura = Aventura.query.get_or_404(pk)
+    if aventura.criador_id != current_user.id:
+        abort(403)
+    if request.method == "POST":
+        db.session.delete(aventura)
+        db.session.commit()
+        flash("Aventura excluída.", "success")
+        return redirect(url_for("lista_aventuras"))
+    return render_template("confirma_exclusao.html", aventura=aventura)
 
 
 
