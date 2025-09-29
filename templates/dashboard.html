@@ -1,47 +1,98 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - RPG{% endblock %}
+{% block title %}Dashboard do Jogador{% endblock %}
 
 {% block content %}
-<!-- Narrativa -->
-<h2 class="text-2xl font-bold text-yellow-300 mb-4">🎲 Narrativa do Mestre</h2>
-<div class="bg-gray-700 p-4 rounded-xl shadow-inner h-[60vh] overflow-y-auto">
-    {% if narrativa %}
-        {% for linha in narrativa %}
-            <p class="mb-2">{{ linha }}</p>
-        {% endfor %}
-    {% else %}
-        <p>A aventura começará em breve. Use as ações na lateral para interagir com o mestre IA.</p>
-    {% endif %}
+<div class="flex flex-col h-full w-full px-6 py-4 space-y-4">
+  <h2 class="text-3xl font-bold text-yellow-300 mb-2">📜 Aventura em andamento</h2>
+
+  <!-- Área de exibição dos turnos -->
+  <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto">
+    {% for msg in mensagens %}
+      <div class="mb-4">
+        <p class="text-sm text-gray-400">{{ msg.criado_em.strftime('%d/%m %H:%M') }} - <span class="font-bold text-yellow-400">{{ msg.autor }}</span>:</p>
+        <p class="text-md">{{ msg.mensagem }}</p>
+      </div>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}
 
 {% block sidebar %}
-<div class="flex flex-col h-full justify-between">
+<div class="flex flex-col h-full gap-4 p-4 bg-gray-800 rounded-xl shadow-md overflow-y-auto">
+
+  <!-- Formulário de entrada -->
+  <form method="POST" action="{{ url_for('enviar_turno') }}" class="space-y-3">
+    {{ form.hidden_tag() }}
     <div>
-        <h2 class="text-xl font-semibold text-yellow-300 mb-2">Suas Ações</h2>
-        
-        <!-- Form de ações -->
-        <form method="post" action="{{ url_for('acao_jogador') }}">
-            <button type="submit" name="acao" value="atacar"
-                class="w-full bg-yellow-500 text-black font-bold py-2 rounded-lg mb-2">Atacar ⚔️</button>
-            <button type="submit" name="acao" value="conversar"
-                class="w-full bg-green-500 text-black font-bold py-2 rounded-lg mb-2">Conversar 🗣️</button>
-            <button type="submit" name="acao" value="investigar"
-                class="w-full bg-blue-500 text-black font-bold py-2 rounded-lg mb-2">Investigar 🔍</button>
-
-            <textarea name="comando" placeholder="Digite sua ação personalizada..."
-                class="w-full mt-3 p-2 rounded-lg bg-gray-700 text-gray-200" rows="4"></textarea>
-            <button type="submit"
-                class="mt-2 w-full bg-yellow-400 text-black font-bold py-2 rounded-lg">Enviar</button>
-        </form>
+      {{ form.acao.label(class_="text-gray-200") }}
+      {{ form.acao(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="O que seu personagem faz?") }}
     </div>
-
-    <!-- Informações do jogador -->
-    <div class="text-sm text-gray-400 mt-4">
-        <p>Turno: {{ turno }}</p>
-        <p>Jogador: {{ usuario.username }}</p>
-        <p>HP: {{ jogador.hp }} | MP: {{ jogador.mp }}</p>
+    <div>
+      {{ form.contexto.label(class_="text-gray-200") }}
+      {{ form.contexto(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Informações adicionais ao mestre...") }}
     </div>
+    <div>
+      {{ form.submit(class_="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg hover:bg-yellow-300 transition") }}
+    </div>
+  </form>
+
+  <!-- Acordeões -->
+  <div class="space-y-2">
+
+    <!-- Personagem -->
+    <details class="bg-gray-700 rounded-md p-2">
+      <summary class="cursor-pointer font-bold text-yellow-400">🧝 Personagem</summary>
+      {% if personagem %}
+        <p><strong>Nome:</strong> {{ personagem.nome }}</p>
+        <p><strong>Classe:</strong> {{ personagem.classe }}</p>
+        <p><strong>Raça:</strong> {{ personagem.raca }}</p>
+        <p><strong>Nível:</strong> {{ personagem.nivel }} (XP: {{ personagem.xp }})</p>
+        <p><strong>Atributos:</strong></p>
+        <ul class="list-disc ml-4">
+          {% for key, val in personagem.atributos.items() %}
+            <li>{{ key }}: {{ val }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-gray-300">Nenhum personagem associado.</p>
+      {% endif %}
+    </details>
+
+    <!-- Inventário -->
+    <details class="bg-gray-700 rounded-md p-2">
+      <summary class="cursor-pointer font-bold text-yellow-400">🎒 Inventário</summary>
+      {% if personagem and personagem.inventario %}
+        <ul class="list-disc ml-4">
+          {% for item in personagem.inventario %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-gray-300">Sem itens.</p>
+      {% endif %}
+    </details>
+
+    <!-- Aventura -->
+    <details class="bg-gray-700 rounded-md p-2">
+      <summary class="cursor-pointer font-bold text-yellow-400">🗺️ Aventura</summary>
+      {% if aventura %}
+        <p><strong>Título:</strong> {{ aventura.titulo }}</p>
+        <p><strong>Cenário:</strong> {{ aventura.cenario }}</p>
+        <p><strong>Status:</strong> {{ aventura.status }}</p>
+        <p><strong>Resumo:</strong> {{ aventura.resumo_atual }}</p>
+      {% else %}
+        <p class="text-gray-300">Nenhuma aventura ativa.</p>
+      {% endif %}
+    </details>
+
+    <!-- Histórico -->
+    <details class="bg-gray-700 rounded-md p-2">
+      <summary class="cursor-pointer font-bold text-yellow-400">📚 Histórico</summary>
+      <p>Mensagens: {{ mensagens|length }}</p>
+      <p>Último turno: {{ ultima_sessao.criado_em.strftime('%d/%m %H:%M') if ultima_sessao else '---' }}</p>
+    </details>
+
+  </div>
 </div>
 {% endblock %}
