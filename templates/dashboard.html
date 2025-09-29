@@ -8,12 +8,53 @@
 
   <!-- Área de exibição dos turnos -->
   <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto">
-    {% for msg in mensagens %}
-      <div class="mb-4">
-        <p class="text-sm text-gray-400">{{ msg.criado_em.strftime('%d/%m %H:%M') }} - <span class="font-bold text-yellow-400">{{ msg.autor }}</span>:</p>
-        <p class="text-md">{{ msg.mensagem }}</p>
+   {% if not personagem %}
+    <h2 class="text-2xl font-bold text-yellow-300 mb-4">🧝‍♂️ Pra começar, vamos criar um personagem!</h2>
+    <form method="POST" action="{{ url_for('criar_personagem') }}" class="space-y-4">
+      {{ personagem_form.hidden_tag() }}
+      <div>
+        {{ personagem_form.nome.label(class_="text-gray-200") }}
+        {{ personagem_form.nome(class_="w-full p-2 rounded bg-gray-700 text-white") }}
       </div>
-    {% endfor %}
+      <div>
+        {{ personagem_form.classe.label(class_="text-gray-200") }}
+        {{ personagem_form.classe(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+      </div>
+      <div>
+        {{ personagem_form.raca.label(class_="text-gray-200") }}
+        {{ personagem_form.raca(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          {{ personagem_form.forca.label(class_="text-gray-200") }}
+          {{ personagem_form.forca(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+        </div>
+        <div>
+          {{ personagem_form.destreza.label(class_="text-gray-200") }}
+          {{ personagem_form.destreza(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+        </div>
+        <div>
+          {{ personagem_form.inteligencia.label(class_="text-gray-200") }}
+          {{ personagem_form.inteligencia(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+        </div>
+      </div>
+      <div>
+        <button type="submit" name="criar_personagem" class="w-full bg-green-500 text-black font-bold py-2 rounded hover:bg-green-400 transition">
+          Criar personagem e iniciar aventura
+        </button>
+      </div>
+    </form>
+  {% else %}
+    <!-- Exibição do histórico de mensagens -->
+    <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto">
+      {% for msg in mensagens %}
+        <div class="mb-4">
+          <p class="text-sm text-gray-400">{{ msg.criado_em.strftime('%d/%m %H:%M') }} - <span class="font-bold text-yellow-400">{{ msg.autor }}</span>:</p>
+          <p class="text-md">{{ msg.mensagem }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
   </div>
 </div>
 {% endblock %}
