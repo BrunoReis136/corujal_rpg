@@ -9,6 +9,7 @@ from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPa
 from models import db, Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 from sqlalchemy import text
 from flask_mail import Mail, Message
+import openai
 
 
 import json
