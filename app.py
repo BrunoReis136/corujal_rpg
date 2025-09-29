@@ -356,6 +356,7 @@ def servicos():
 
 
 
+'''
 @app.route("/db_reset")
 def db_reset():
     try:
@@ -384,6 +385,99 @@ def db_reset():
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": "erro", "msg": str(e)})
+'''
+
+
+@app.route('/enviar_turno', methods=['POST'])
+@login_required
+def enviar_turno():
+    form = TurnoForm()
+
+    if form.validate_on_submit():
+        participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
+        if not participacao:
+            flash("Você não está participando de nenhuma aventura.", "danger")
+            return redirect(url_for("dashboard"))
+
+        aventura = participacao.aventura
+        personagem = participacao.personagem
+
+        # Mensagens anteriores da aventura
+        mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id).order_by(HistoricoMensagens.criado_em.asc()).all()
+
+        # Montar prompt com resumo, último turno e ação do jogador
+        prompt_parts = []
+
+        if aventura.resumo_atual:
+            prompt_parts.append(f"Resumo da aventura até agora:\n{aventura.resumo_atual}")
+
+        if aventura.ultimo_turno:
+            prompt_parts.append(f"Último turno:\n{aventura.ultimo_turno.get('texto', '')}")
+
+        if form.contexto.data:
+            prompt_parts.append(f"Contexto adicional do jogador:\n{form.contexto.data}")
+
+        prompt_parts.append(f"Ação de {personagem.nome}:\n{form.acao.data}")
+
+        prompt_final = "\n\n".join(prompt_parts)
+
+        # Chamada à OpenAI
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "Você é um mestre de RPG, narrando a aventura para os jogadores."},
+                    {"role": "user", "content": prompt_final}
+                ],
+                temperature=0.8,
+                max_tokens=800
+            )
+            resultado_turno = response.choices[0].message.content.strip()
+
+        except Exception as e:
+            flash(f"Erro ao processar o turno: {e}", "danger")
+            return redirect(url_for("dashboard"))
+
+        # Salvar no banco: Sessao e duas mensagens (jogador + mestre)
+        nova_sessao = Sessao(
+            aventura_id=aventura.id,
+            narrador_ia=resultado_turno,
+            acoes_jogadores=[form.acao.data],
+            resultado=resultado_turno,
+            prompt_usado=prompt_final,
+            resposta_bruta=str(response)
+        )
+        db.session.add(nova_sessao)
+
+        mensagem_jogador = HistoricoMensagens(
+            usuario_id=current_user.id,
+            aventura_id=aventura.id,
+            mensagem=form.acao.data,
+            autor=personagem.nome
+        )
+        db.session.add(mensagem_jogador)
+
+        mensagem_mestre = HistoricoMensagens(
+            usuario_id=None,  # IA
+            aventura_id=aventura.id,
+            mensagem=resultado_turno,
+            autor="Mestre IA"
+        )
+        db.session.add(mensagem_mestre)
+
+        # Atualizar último turno na aventura
+        aventura.ultimo_turno = {"texto": resultado_turno}
+        db.session.commit()
+
+        flash("Turno enviado e processado com sucesso!", "success")
+
+    else:
+        flash("Erro no envio do formulário.", "danger")
+
+    return redirect(url_for("dashboard"))
+
+
+
 
 # -------------------------
 # CLI convenience
