@@ -39,6 +39,7 @@ class Personagem(db.Model):
     nome = db.Column(db.String(100))
     classe = db.Column(db.String(50))
     raca = db.Column(db.String(50))
+    descricao = db.Column(db.String(200))
     atributos = db.Column(db.JSON, default={})
     inventario = db.Column(db.JSON, default=list)
     xp = db.Column(db.Integer, default=0)
