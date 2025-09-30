@@ -236,9 +236,18 @@ def dashboard():
     turno_form = TurnoForm()
     personagem_form = PersonagemForm()  # usado se personagem for None
 
+
+    # Personagens do usuário nesta aventura
+    personagens = Personagem.query.join(Participacao)\
+        .filter(
+            Participacao.aventura_id == aventura.id,
+            Personagem.usuario_id == current_user.id
+        ).all()
+
     return render_template(
         "dashboard.html",
         personagem=personagem,
+        personagens=personagens,
         aventura=aventura,
         mensagens=mensagens,
         ultima_sessao=ultima_sessao,
