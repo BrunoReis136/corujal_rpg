@@ -679,7 +679,15 @@ def add_personagem():
     return redirect(url_for("dashboard"))
 
 
-
+@app.route("/add_personagem_descricao")
+def add_personagem_descricao():
+    try:
+        db.session.execute(text('ALTER TABLE core_personagem ADD COLUMN descricao TEXT'))
+        db.session.commit()
+        return "Coluna 'descricao' adicionada com sucesso!"
+    except Exception as e:
+        db.session.rollback()
+        return f"Erro: {e}"
 
 
 # -------------------------
