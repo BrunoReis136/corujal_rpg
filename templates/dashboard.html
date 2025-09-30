@@ -24,6 +24,10 @@
         {{ personagem_form.raca.label(class_="text-gray-200") }}
         {{ personagem_form.raca(class_="w-full p-2 rounded bg-gray-700 text-white") }}
       </div>
+      <div>
+        {{ personagem_form.descricao.label(class_="text-gray-200") }}
+        {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+      </div>
       <div class="grid grid-cols-3 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-200">Força</label>
@@ -64,6 +68,7 @@
           Criar personagem e iniciar aventura
         </button>
       </div>
+      
     </form>
   {% else %}
     <!-- Exibição do histórico de mensagens -->
@@ -185,15 +190,11 @@
         {{ personagem_form.raca(class="w-full p-2 rounded bg-gray-800 text-gray-100") }}
       </div>
       
-      <div class="flex justify-end gap-2">
-        <button type="button" onclick="document.getElementById('modal-personagem').classList.add('hidden')" 
-                class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
-          Cancelar
-        </button>
-        <button type="submit" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400">
-          Criar
-        </button>
+      <div>
+        {{ personagem_form.descricao.label(class_="text-gray-200") }}
+        {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white") }}
       </div>
+
       
       <div class="grid grid-cols-3 gap-4">
         <div>
@@ -228,6 +229,16 @@
       </div>
       
       <p class="mt-2 text-yellow-400 font-bold">Pontos restantes: <span id="pontos-restantes">50</span></p>
+      
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="document.getElementById('modal-personagem').classList.add('hidden')" 
+                class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
+          Cancelar
+        </button>
+        <button type="submit" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400">
+          Criar
+        </button>
+      </div>
       
     </form>
   </div>
