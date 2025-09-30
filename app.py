@@ -34,7 +34,7 @@ app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASS")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_TO", app.config["MAIL_USERNAME"])
 
 
-client = OpenAI(os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Token serializer for password reset
 serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
