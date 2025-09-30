@@ -9,4 +9,4 @@ WTForms
 Werkzeug
 psycopg2-binary
 email-validator
-openai
+openai >= 1.0.0
