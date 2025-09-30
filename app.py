@@ -199,19 +199,19 @@ def logout():
     return redirect(url_for("home"))
     
 
-@app.route("/dashboard")
+@app.route("/dashboard/<int:aventura_id>")
 @login_required
-def dashboard():
-    participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
+def dashboard(aventura_id):
+    participacao = Participacao.query.filter_by(usuario_id=current_user.id, aventura_id=aventura_id).first()
 
     if not participacao:
-        flash("Você ainda não participa de nenhuma aventura.", "warning")
+        flash("Você não participa desta aventura.", "warning")
         return redirect(url_for("lista_aventuras"))
 
     personagem = None
     if participacao.personagem_id:
         personagem = Personagem.query.filter_by(id=participacao.personagem_id, usuario_id=current_user.id).first()
-        
+    
     aventura = participacao.aventura
 
     mensagens = HistoricoMensagens.query \
@@ -225,7 +225,7 @@ def dashboard():
         .first()
 
     turno_form = TurnoForm()
-    personagem_form = PersonagemForm()  # Usado se personagem for None
+    personagem_form = PersonagemForm()  # usado se personagem for None
 
     return render_template(
         "dashboard.html",
@@ -236,6 +236,7 @@ def dashboard():
         form=turno_form,
         personagem_form=personagem_form
     )
+
 
 
 
