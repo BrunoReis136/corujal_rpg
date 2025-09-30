@@ -9,7 +9,7 @@ from forms import LoginForm, SignupForm, AventuraForm, ForgotPasswordForm, SetPa
 from models import db, Usuario, Personagem, Item, Aventura, Sessao, Participacao, HistoricoMensagens
 from sqlalchemy import text
 from flask_mail import Mail, Message
-import openai
+from openai import OpenAI
 
 
 import json
@@ -33,7 +33,8 @@ app.config["MAIL_USERNAME"] = os.getenv("MAIL_USER")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASS")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_TO", app.config["MAIL_USERNAME"])
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+client = OpenAI(os.getenv("OPENAI_API_KEY"))
 
 # Token serializer for password reset
 serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
@@ -462,7 +463,7 @@ def enviar_turno():
 
         # Chamada à OpenAI
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "Você é um mestre de RPG, narrando a aventura para os jogadores."},
@@ -471,6 +472,7 @@ def enviar_turno():
                 temperature=0.8,
                 max_tokens=800
             )
+            
             resultado_turno = response.choices[0].message.content.strip()
 
         except Exception as e:
@@ -578,7 +580,7 @@ Crie a introdução da história dessa aventura incluindo este personagem de for
 """
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Você é um mestre de RPG, narrando a aventura para os jogadores."},
@@ -587,7 +589,6 @@ Crie a introdução da história dessa aventura incluindo este personagem de for
             temperature=0.8,
             max_tokens=800
         )
-
         narrativa_inicial = response.choices[0].message.content.strip()
 
         nova_sessao = Sessao(
