@@ -104,6 +104,25 @@
     </div>
   </form>
 
+  <!-- Menu de controle de presença dos personagens -->
+  <details class="bg-gray-700 rounded-md p-2 mt-2">
+    <summary class="cursor-pointer font-bold text-yellow-400">🎭 Personagens na cena</summary>
+    {% if personagens %}
+      <ul class="list-disc list-inside ml-4 mt-2">
+        {% for p in personagens %}
+          <li class="flex items-center gap-2">
+            <input type="checkbox" name="personagem_{{ p.id }}" id="personagem_{{ p.id }}" {% if p.ativo_na_sessao %}checked{% endif %}>
+            <label for="personagem_{{ p.id }}">{{ p.nome }} ({{ p.classe }})</label>
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="mt-2 text-sm text-gray-300">Marque os personagens que estão em cena. As alterações serão registradas ao enviar o turno.</p>
+    {% else %}
+      <p class="text-gray-300">Nenhum personagem criado.</p>
+    {% endif %}
+  </details>
+
+  
   <!-- Acordeões -->
   <div class="space-y-2">
 
