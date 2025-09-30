@@ -42,7 +42,7 @@ class AventuraForm(FlaskForm):
     metadados = TextAreaField("Metadados (JSON)", validators=[Optional()])
     estado_personagens = TextAreaField("Estado dos Personagens (JSON)", validators=[Optional()])
     estado_aventura = TextAreaField("Estado da Aventura (JSON)", validators=[Optional()])
-    ativo_na_sessao = 
+    ativo_na_sessao = BooleanField('Ativo na sessão')
     submit = SubmitField("Salvar")
 
 class ForgotPasswordForm(FlaskForm):
