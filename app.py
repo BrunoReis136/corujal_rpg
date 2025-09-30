@@ -197,6 +197,7 @@ def logout():
     logout_user()
     flash("Você saiu da conta.", "info")
     return redirect(url_for("home"))
+    
 
 @app.route("/dashboard")
 @login_required
@@ -207,7 +208,10 @@ def dashboard():
         flash("Você ainda não participa de nenhuma aventura.", "warning")
         return redirect(url_for("lista_aventuras"))
 
-    personagem = participacao.personagem
+    personagem = None
+    if participacao.personagem_id:
+        personagem = Personagem.query.filter_by(id=participacao.personagem_id, usuario_id=current_user.id).first()
+        
     aventura = participacao.aventura
 
     mensagens = HistoricoMensagens.query \
