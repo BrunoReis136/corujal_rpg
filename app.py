@@ -664,15 +664,18 @@ Crie a introdução da história desta aventura incluindo este personagem de for
 
 
 
-@app.route("/add_personagem_descricao")
-def add_personagem_descricao():
+@app.route("/add_personagem_ativo")
+def add_personagem_ativo():
     try:
-        db.session.execute(text('ALTER TABLE core_personagem ADD COLUMN descricao TEXT'))
+        db.session.execute(
+            text("ALTER TABLE core_personagem ADD COLUMN ativo_na_sessao BOOLEAN DEFAULT TRUE")
+        )
         db.session.commit()
-        return "Coluna 'descricao' adicionada com sucesso!"
+        return "Coluna 'ativo_na_sessao' adicionada com sucesso!"
     except Exception as e:
         db.session.rollback()
         return f"Erro: {e}"
+
 
 
 # -------------------------
