@@ -249,7 +249,6 @@ def dashboard():
 
 
 
-
 @app.route("/acao/", methods=["POST"])
 @login_required
 def acao_jogador():
@@ -356,6 +355,8 @@ def entrar_aventura(pk):
     flash(f"Entrou na aventura: {aventura.titulo}", "success")
     return redirect(url_for("dashboard"))
 
+
+
 @app.route("/aventuras/<int:pk>/excluir/", methods=["GET", "POST"])
 @login_required
 def excluir_aventura(pk):
@@ -450,13 +451,15 @@ def enviar_turno():
     form = TurnoForm()
 
     if form.validate_on_submit():
-        participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
+        aventura_id = session.get("aventura_id")
+        participacao = Participacao.query.filter_by(usuario_id=current_user.id, aventura_id=aventura_id).first()
         if not participacao:
             flash("Você não está participando de nenhuma aventura.", "danger")
-            return redirect(url_for("aventuras"))
+            return redirect(url_for("lista_aventuras"))
 
         aventura = participacao.aventura
         personagem = participacao.personagem
+
 
         # Mensagens anteriores da aventura
         mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id).order_by(HistoricoMensagens.criado_em.asc()).all()
@@ -539,33 +542,37 @@ def enviar_turno():
 @login_required
 def criar_personagem():
     form = PersonagemForm()
-
     if not form.validate_on_submit():
         flash("Erro ao validar o formulário de personagem.", "danger")
         return redirect(url_for("dashboard"))
 
-    participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
+    aventura_id = session.get("aventura_id")
+    if not aventura_id:
+        flash("Nenhuma aventura ativa.", "warning")
+        return redirect(url_for("lista_aventuras"))
+
+    participacao = Participacao.query.filter_by(
+        usuario_id=current_user.id,
+        aventura_id=aventura_id
+    ).first()
+
     if not participacao:
-        flash("Você não participa de nenhuma aventura.", "danger")
-        return redirect(url_for("aventuras"))
+        flash("Você não participa desta aventura.", "danger")
+        return redirect(url_for("lista_aventuras"))
 
     aventura = participacao.aventura
 
-    # Garantir limites de atributos
+    # Limites de atributos
     forca = max(1, min(99, form.forca.data))
     destreza = max(1, min(99, form.destreza.data))
     inteligencia = max(1, min(99, form.inteligencia.data))
-
     total_pontos = forca + destreza + inteligencia
-    if total_pontos != 150:  # 50+50+50 base + ajustes
+
+    if total_pontos != 150:
         flash("Distribuição de atributos inválida! O total de pontos deve ser 50 adicionais à base.", "danger")
         return redirect(url_for("dashboard"))
 
-    atributos = {
-        "Força": forca,
-        "Destreza": destreza,
-        "Inteligência": inteligencia
-    }
+    atributos = {"Força": forca, "Destreza": destreza, "Inteligência": inteligencia}
 
     novo_personagem = Personagem(
         nome=form.nome.data,
@@ -574,42 +581,32 @@ def criar_personagem():
         atributos=atributos,
         usuario_id=current_user.id
     )
-
     db.session.add(novo_personagem)
     db.session.commit()
 
     participacao.personagem_id = novo_personagem.id
     db.session.commit()
 
-    # Prompt inicial
+    # Criar prompt inicial e gerar narrativa
     import json
     prompt_inicial = f"""
-Você é o mestre de uma campanha de RPG de mesa online. Um novo personagem acaba de ser criado e vai iniciar sua jornada.
+Você é o mestre de uma campanha de RPG de mesa online. Um novo personagem acaba de ser criado.
 
-📜 Aventura:
-Título: {aventura.titulo}
+Aventura: {aventura.titulo}
 Descrição: {aventura.descricao}
 Cenário: {aventura.cenario}
-Regras relevantes:
-{json.dumps(aventura.regras, ensure_ascii=False, indent=2)}
+Regras relevantes: {json.dumps(aventura.regras, ensure_ascii=False, indent=2)}
 
-🧝 Personagem criado:
-Nome: {novo_personagem.nome}
-Classe: {novo_personagem.classe}
-Raça: {novo_personagem.raca}
-Nível: {novo_personagem.nivel}
-Atributos:
-{json.dumps(novo_personagem.atributos, ensure_ascii=False, indent=2)}
+Personagem criado: {novo_personagem.nome}, {novo_personagem.classe}, {novo_personagem.raca}
+Atributos: {json.dumps(novo_personagem.atributos, ensure_ascii=False, indent=2)}
 
-🎯 Sua tarefa:
-Crie a introdução da história dessa aventura incluindo este personagem de forma natural, imersiva e envolvente, sem mencionar que foi gerado por IA. Faça parecer o início de uma sessão de RPG conduzida por um mestre humano.
+Crie a introdução da história desta aventura incluindo este personagem de forma imersiva, sem mencionar IA.
 """
-
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Você é um mestre de RPG, narrando a aventura para os jogadores."},
+                {"role": "system", "content": "Você é um mestre de RPG narrando a aventura."},
                 {"role": "user", "content": prompt_inicial}
             ],
             temperature=0.8,
@@ -643,6 +640,7 @@ Crie a introdução da história dessa aventura incluindo este personagem de for
         flash(f"Erro ao iniciar a aventura com IA: {e}", "danger")
 
     return redirect(url_for("dashboard"))
+
 
 
 @app.route("/add_personagem", methods=["POST"])
