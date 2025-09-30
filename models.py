@@ -46,6 +46,7 @@ class Personagem(db.Model):
     nivel = db.Column(db.Integer, default=1)
     usuario_id = db.Column(db.Integer, db.ForeignKey("core_usuario.id"))
     usuario = db.relationship("Usuario", backref="personagens")
+    ativo_na_sessao = db.Column(db.Boolean, default=True) 
 
 class Item(db.Model):
     __tablename__ = "core_item"
