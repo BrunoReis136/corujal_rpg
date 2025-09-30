@@ -464,7 +464,7 @@ def enviar_turno():
         # Chamada à OpenAI
         try:
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "Você é um mestre de RPG, narrando a aventura para os jogadores."},
                     {"role": "user", "content": prompt_final}
@@ -581,7 +581,7 @@ Crie a introdução da história dessa aventura incluindo este personagem de for
 
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "Você é um mestre de RPG, narrando a aventura para os jogadores."},
                 {"role": "user", "content": prompt_inicial}
