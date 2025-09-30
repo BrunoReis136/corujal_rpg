@@ -199,10 +199,19 @@ def logout():
     return redirect(url_for("home"))
     
 
-@app.route("/dashboard/<int:aventura_id>")
+@app.route("/dashboard")
 @login_required
-def dashboard(aventura_id):
-    participacao = Participacao.query.filter_by(usuario_id=current_user.id, aventura_id=aventura_id).first()
+def dashboard():
+    aventura_id = session.get("aventura_id")  # pega da session
+
+    if not aventura_id:
+        flash("Nenhuma aventura ativa. Entre em uma aventura primeiro.", "warning")
+        return redirect(url_for("lista_aventuras"))
+
+    participacao = Participacao.query.filter_by(
+        usuario_id=current_user.id,
+        aventura_id=aventura_id
+    ).first()
 
     if not participacao:
         flash("Você não participa desta aventura.", "warning")
@@ -211,7 +220,7 @@ def dashboard(aventura_id):
     personagem = None
     if participacao.personagem_id:
         personagem = Personagem.query.filter_by(id=participacao.personagem_id, usuario_id=current_user.id).first()
-    
+
     aventura = participacao.aventura
 
     mensagens = HistoricoMensagens.query \
@@ -236,6 +245,7 @@ def dashboard(aventura_id):
         form=turno_form,
         personagem_form=personagem_form
     )
+
 
 
 
@@ -341,6 +351,7 @@ def entrar_aventura(pk):
         db.session.add(nova_participacao)
         db.session.commit()
 
+    # salva a aventura ativa na session
     session["aventura_id"] = aventura.id
     flash(f"Entrou na aventura: {aventura.titulo}", "success")
     return redirect(url_for("dashboard"))
