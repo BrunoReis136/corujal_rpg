@@ -618,7 +618,23 @@ Crie a introdução da história dessa aventura incluindo este personagem de for
 
     return redirect(url_for("dashboard"))
 
-
+@app.route("/add_personagem", methods=["POST"])
+@login_required
+def add_personagem():
+    form = PersonagemForm()
+    if form.validate_on_submit():
+        novo = Personagem(
+            nome=form.nome.data,
+            classe=form.classe.data,
+            raca=form.raca.data,
+            usuario_id=current_user.id
+        )
+        db.session.add(novo)
+        db.session.commit()
+        flash("Novo personagem criado com sucesso!", "success")
+    else:
+        flash("Erro ao criar personagem. Verifique os dados.", "danger")
+    return redirect(url_for("dashboard"))
 
 
 
