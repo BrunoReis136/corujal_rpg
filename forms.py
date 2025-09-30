@@ -58,6 +58,7 @@ class PersonagemForm(FlaskForm):
     nome = StringField("Nome", validators=[DataRequired()])
     classe = StringField("Classe", validators=[DataRequired()])
     raca = StringField("Raça", validators=[DataRequired()])
+    descricao = StringField("Descrição", validators=[DataRequired()])
     forca = IntegerField("Força", default=10)
     destreza = IntegerField("Destreza", default=10)
     inteligencia = IntegerField("Inteligência", default=10)
