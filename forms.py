@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, IntegerField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, IntegerField, BooleanField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 
 # -------------------------
@@ -42,7 +42,7 @@ class AventuraForm(FlaskForm):
     metadados = TextAreaField("Metadados (JSON)", validators=[Optional()])
     estado_personagens = TextAreaField("Estado dos Personagens (JSON)", validators=[Optional()])
     estado_aventura = TextAreaField("Estado da Aventura (JSON)", validators=[Optional()])
-
+    ativo_na_sessao = 
     submit = SubmitField("Salvar")
 
 class ForgotPasswordForm(FlaskForm):
@@ -62,4 +62,6 @@ class PersonagemForm(FlaskForm):
     forca = IntegerField("Força", default=10)
     destreza = IntegerField("Destreza", default=10)
     inteligencia = IntegerField("Inteligência", default=10)
+    ativo_na_sessao = BooleanField("Em cena", default=True)
     submit = SubmitField("Criar Personagem")
+    
