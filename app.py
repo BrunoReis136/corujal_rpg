@@ -451,8 +451,7 @@ def enviar_turno():
     form = TurnoForm()
 
     if form.validate_on_submit():
-        aventura_id = session.get("aventura_id")
-        participacao = Participacao.query.filter_by(usuario_id=current_user.id, aventura_id=aventura_id).first()
+        participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
         if not participacao:
             flash("Você não está participando de nenhuma aventura.", "danger")
             return redirect(url_for("lista_aventuras"))
@@ -460,23 +459,36 @@ def enviar_turno():
         aventura = participacao.aventura
         personagem = participacao.personagem
 
+        # Atualizar ativos na sessão conforme checkboxes do form
+        personagens_usuario = Personagem.query.filter_by(usuario_id=current_user.id).all()
+        for p in personagens_usuario:
+            p.ativo_na_sessao = f"personagem_{p.id}" in request.form
+        db.session.commit()
 
-        # Mensagens anteriores da aventura
-        mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id).order_by(HistoricoMensagens.criado_em.asc()).all()
+        # Personagens ativos na aventura
+        participacoes = Participacao.query.filter_by(aventura_id=aventura.id).all()
+        personagens_ativos = [
+            p.participante_personagem for p in participacoes 
+            if p.participante_personagem.ativo_na_sessao
+        ]
 
-        # Montar prompt com resumo, último turno e ação do jogador
+        # Montar prompt
         prompt_parts = []
-
         if aventura.resumo_atual:
             prompt_parts.append(f"Resumo da aventura até agora:\n{aventura.resumo_atual}")
-
         if aventura.ultimo_turno:
             prompt_parts.append(f"Último turno:\n{aventura.ultimo_turno.get('texto', '')}")
-
         if form.contexto.data:
             prompt_parts.append(f"Contexto adicional do jogador:\n{form.contexto.data}")
-
         prompt_parts.append(f"Ação de {personagem.nome}:\n{form.acao.data}")
+
+        # Adicionar personagens ativos na cena ao prompt
+        if personagens_ativos:
+            detalhes_personagens = []
+            for p in personagens_ativos:
+                atributos_str = ", ".join([f"{k}: {v}" for k, v in p.atributos.items()])
+                detalhes_personagens.append(f"- {p.nome} ({p.classe}, {atributos_str}) - {p.descricao}")
+            prompt_parts.append("Personagens ativos na cena:\n" + "\n".join(detalhes_personagens))
 
         prompt_final = "\n\n".join(prompt_parts)
 
@@ -491,14 +503,12 @@ def enviar_turno():
                 temperature=0.8,
                 max_tokens=800
             )
-            
             resultado_turno = response.choices[0].message.content.strip()
-
         except Exception as e:
             flash(f"Erro ao processar o turno: {e}", "danger")
             return redirect(url_for("dashboard"))
 
-        # Salvar no banco: Sessao e duas mensagens (jogador + mestre)
+        # Salvar no banco
         nova_sessao = Sessao(
             aventura_id=aventura.id,
             narrador_ia=resultado_turno,
@@ -518,7 +528,7 @@ def enviar_turno():
         db.session.add(mensagem_jogador)
 
         mensagem_mestre = HistoricoMensagens(
-            usuario_id=None,  # IA
+            usuario_id=None,
             aventura_id=aventura.id,
             mensagem=resultado_turno,
             autor="Mestre IA"
@@ -530,11 +540,12 @@ def enviar_turno():
         db.session.commit()
 
         flash("Turno enviado e processado com sucesso!", "success")
-
     else:
         flash("Erro no envio do formulário.", "danger")
 
     return redirect(url_for("dashboard"))
+
+
 
 
 
