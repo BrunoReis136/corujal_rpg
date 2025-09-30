@@ -542,7 +542,7 @@ def criar_personagem():
 
     total_pontos = forca + destreza + inteligencia
     if total_pontos != 150:  # 50+50+50 base + ajustes
-        flash("Distribuição de atributos inválida! O total de pontos deve ser 100 adicionais à base.", "danger")
+        flash("Distribuição de atributos inválida! O total de pontos deve ser 50 adicionais à base.", "danger")
         return redirect(url_for("dashboard"))
 
     atributos = {
