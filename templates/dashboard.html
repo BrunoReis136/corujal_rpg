@@ -26,18 +26,39 @@
       </div>
       <div class="grid grid-cols-3 gap-4">
         <div>
-          {{ personagem_form.forca.label(class_="text-gray-200") }}
-          {{ personagem_form.forca(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+          <label class="block text-sm font-medium text-gray-200">Força</label>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="ajustarAtributo('forca', -1)" class="bg-gray-700 px-2 rounded">-</button>
+            <input id="forca" name="forca" type="number" value="50" min="1" max="99"
+                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
+            <button type="button" onclick="ajustarAtributo('forca', 1)" class="bg-gray-700 px-2 rounded">+</button>
+          </div>
         </div>
+      
         <div>
-          {{ personagem_form.destreza.label(class_="text-gray-200") }}
-          {{ personagem_form.destreza(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+          <label class="block text-sm font-medium text-gray-200">Destreza</label>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="ajustarAtributo('destreza', -1)" class="bg-gray-700 px-2 rounded">-</button>
+            <input id="destreza" name="destreza" type="number" value="50" min="1" max="99"
+                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
+            <button type="button" onclick="ajustarAtributo('destreza', 1)" class="bg-gray-700 px-2 rounded">+</button>
+          </div>
         </div>
+      
         <div>
-          {{ personagem_form.inteligencia.label(class_="text-gray-200") }}
-          {{ personagem_form.inteligencia(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+          <label class="block text-sm font-medium text-gray-200">Inteligência</label>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="ajustarAtributo('inteligencia', -1)" class="bg-gray-700 px-2 rounded">-</button>
+            <input id="inteligencia" name="inteligencia" type="number" value="50" min="1" max="99"
+                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
+            <button type="button" onclick="ajustarAtributo('inteligencia', 1)" class="bg-gray-700 px-2 rounded">+</button>
+          </div>
         </div>
       </div>
+      
+      <p class="mt-2 text-yellow-400 font-bold">Pontos restantes: <span id="pontos-restantes">100</span></p>
+
+      
       <div>
         <button type="submit" name="criar_personagem" class="w-full bg-green-500 text-black font-bold py-2 rounded hover:bg-green-400 transition">
           Criar personagem e iniciar aventura
@@ -153,14 +174,17 @@
         {{ personagem_form.nome.label(class="block text-sm font-medium text-gray-200") }}
         {{ personagem_form.nome(class="w-full p-2 rounded bg-gray-800 text-gray-100") }}
       </div>
+      
       <div>
         {{ personagem_form.classe.label(class="block text-sm font-medium text-gray-200") }}
         {{ personagem_form.classe(class="w-full p-2 rounded bg-gray-800 text-gray-100") }}
       </div>
+      
       <div>
         {{ personagem_form.raca.label(class="block text-sm font-medium text-gray-200") }}
         {{ personagem_form.raca(class="w-full p-2 rounded bg-gray-800 text-gray-100") }}
       </div>
+      
       <div class="flex justify-end gap-2">
         <button type="button" onclick="document.getElementById('modal-personagem').classList.add('hidden')" 
                 class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
@@ -170,6 +194,41 @@
           Criar
         </button>
       </div>
+      
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-200">Força</label>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="ajustarAtributo('forca', -1)" class="bg-gray-700 px-2 rounded">-</button>
+            <input id="forca" name="forca" type="number" value="50" min="1" max="99"
+                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
+            <button type="button" onclick="ajustarAtributo('forca', 1)" class="bg-gray-700 px-2 rounded">+</button>
+          </div>
+        </div>
+      
+        <div>
+          <label class="block text-sm font-medium text-gray-200">Destreza</label>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="ajustarAtributo('destreza', -1)" class="bg-gray-700 px-2 rounded">-</button>
+            <input id="destreza" name="destreza" type="number" value="50" min="1" max="99"
+                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
+            <button type="button" onclick="ajustarAtributo('destreza', 1)" class="bg-gray-700 px-2 rounded">+</button>
+          </div>
+        </div>
+      
+        <div>
+          <label class="block text-sm font-medium text-gray-200">Inteligência</label>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="ajustarAtributo('inteligencia', -1)" class="bg-gray-700 px-2 rounded">-</button>
+            <input id="inteligencia" name="inteligencia" type="number" value="50" min="1" max="99"
+                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
+            <button type="button" onclick="ajustarAtributo('inteligencia', 1)" class="bg-gray-700 px-2 rounded">+</button>
+          </div>
+        </div>
+      </div>
+      
+      <p class="mt-2 text-yellow-400 font-bold">Pontos restantes: <span id="pontos-restantes">100</span></p>
+      
     </form>
   </div>
 </div>
@@ -186,6 +245,37 @@
       modal.classList.add("hidden");
     }
   });
+
+  let pontosTotais = 100;
+
+  function atualizarPontos() {
+    const forca = parseInt(document.getElementById("forca").value);
+    const destreza = parseInt(document.getElementById("destreza").value);
+    const inteligencia = parseInt(document.getElementById("inteligencia").value);
+  
+    let usados = (forca - 50) + (destreza - 50) + (inteligencia - 50);
+    let restantes = pontosTotais - usados;
+  
+    document.getElementById("pontos-restantes").innerText = restantes;
+    return restantes;
+  }
+  
+  function ajustarAtributo(id, delta) {
+    const input = document.getElementById(id);
+    let valor = parseInt(input.value);
+  
+    let restantes = atualizarPontos();
+  
+    if (delta > 0 && restantes <= 0) return; // não deixa passar do limite
+    if (delta < 0 && valor <= 1) return;      // não deixa cair abaixo do mínimo
+    if (delta > 0 && valor >= 99) return;     // não deixa ultrapassar 99
+  
+    input.value = valor + delta;
+    atualizarPontos();
+  }
+  
+  // inicializa contador
+  document.addEventListener("DOMContentLoaded", atualizarPontos);
   </script>
 {% endblock %}
 
