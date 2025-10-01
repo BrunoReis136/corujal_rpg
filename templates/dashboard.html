@@ -7,7 +7,7 @@
   <h2 class="text-2xl sm:text-3xl font-bold text-yellow-300 mb-2">📜 Aventura em andamento</h2>
 
   <!-- Área de exibição dos turnos -->
-  <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto">
+  <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto text-sm sm:text-base">
     {% if not personagem %}
       <h2 class="text-xl sm:text-2xl font-bold text-yellow-300 mb-4">🧝‍♂️ Pra começar, vamos criar um personagem!</h2>
       <form method="POST" action="{{ url_for('criar_personagem') }}" class="space-y-4">
@@ -53,7 +53,7 @@
       </form>
     {% else %}
       <!-- Exibição do histórico de mensagens -->
-      <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto text-sm sm:text-base">
+      <div id="turno-historico-inner">
         {% for msg in mensagens %}
           <div class="mb-4">
             <p class="text-xs sm:text-sm text-gray-400">{{ msg.criado_em.strftime('%d/%m %H:%M') }} - <span class="font-bold text-yellow-400">{{ msg.autor }}</span>:</p>
@@ -70,7 +70,7 @@
 <div class="flex flex-col h-full gap-4 p-4 bg-gray-800 rounded-xl shadow-md overflow-y-auto text-sm sm:text-base">
 
   <!-- Formulário de entrada -->
-  <form method="POST" action="{{ url_for('enviar_turno') }}" class="space-y-3">
+  <form id="form-turno" method="POST" action="{{ url_for('enviar_turno') }}" class="space-y-3">
     {{ form.hidden_tag() }}
     <div>
       {{ form.acao.label(class_="text-gray-200") }}
@@ -248,6 +248,7 @@
 
 {% block scripts %}
 <script>
+  // Modal
   document.addEventListener("click", function(e) {
     const modal = document.getElementById("modal-personagem");
     if (!modal.classList.contains("hidden") && e.target === modal) {
@@ -255,8 +256,8 @@
     }
   });
 
+  // Atributos
   let pontosTotais = 50;
-
   function atualizarPontos() {
     const forca = parseInt(document.getElementById("forca").value);
     const destreza = parseInt(document.getElementById("destreza").value);
@@ -301,5 +302,37 @@
     document.getElementById('form-personagem-titulo').innerText = "Editar Personagem";
     document.getElementById('form-personagem-botao').innerText = "Salvar Alterações";
   }
+
+  // AJAX para envio de turno
+  document.getElementById("form-turno")?.addEventListener("submit", function(e){
+    e.preventDefault();
+    const formData = new FormData(this);
+
+    fetch("{{ url_for('enviar_turno') }}", {
+      method: "POST",
+      body: formData,
+      headers: {"X-Requested-With": "XMLHttpRequest"}
+    })
+    .then(r => r.json())
+    .then(data => {
+      if(data.status === "ok") {
+        const historico = document.getElementById("turno-historico-inner");
+        historico.innerHTML = "";
+        data.mensagens.forEach(msg => {
+          const div = document.createElement("div");
+          div.classList.add("mb-4");
+          div.innerHTML = `<p class="text-xs sm:text-sm text-gray-400">${msg.criado_em} - <span class="font-bold text-yellow-400">${msg.autor}</span>:</p>
+                           <p class="text-sm sm:text-base">${msg.mensagem}</p>`;
+          historico.appendChild(div);
+        });
+        this.reset();
+        this.querySelector("input[name='acao']").focus();
+        historico.scrollTop = historico.scrollHeight;
+      } else {
+        alert("Erro ao enviar turno: " + data.error);
+      }
+    })
+    .catch(err => { console.error(err); alert("Erro de conexão."); });
+  });
 </script>
 {% endblock %}
