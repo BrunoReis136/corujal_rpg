@@ -662,6 +662,43 @@ Crie a introdução da história desta aventura incluindo este personagem de for
     return redirect(url_for("dashboard"))
 
 
+@app.route("/add_personagem", methods=["POST"])
+@login_required
+def add_personagem():
+    form = PersonagemForm()
+    if form.validate_on_submit():
+        # Validar atributos
+        forca = max(1, min(99, form.forca.data))
+        destreza = max(1, min(99, form.destreza.data))
+        inteligencia = max(1, min(99, form.inteligencia.data))
+
+        total_pontos = forca + destreza + inteligencia
+        if total_pontos != 150:
+            flash("Distribuição de atributos inválida! O total de pontos deve ser 100 adicionais à base.", "danger")
+            return redirect(url_for("dashboard"))
+
+        atributos = {
+            "Força": forca,
+            "Destreza": destreza,
+            "Inteligência": inteligencia
+        }
+
+        novo = Personagem(
+            nome=form.nome.data,
+            classe=form.classe.data,
+            raca=form.raca.data,
+            atributos=atributos,
+            descricao=form.descricao.data if hasattr(form, "descricao") else None,
+            ativo_na_sessao=False,  # por padrão todo personagem novo começa fora da cena
+            usuario_id=current_user.id
+        )
+        db.session.add(novo)
+        db.session.commit()
+        flash("Novo personagem criado com sucesso!", "success")
+    else:
+        flash("Erro ao criar personagem. Verifique os dados.", "danger")
+    return redirect(url_for("dashboard"))
+
 
 
 @app.route("/add_personagem_ativo")
