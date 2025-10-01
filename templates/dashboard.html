@@ -126,30 +126,36 @@
   <!-- Acordeões -->
   <div class="space-y-2">
 
-    <!-- Personagem -->
+    <!-- Personagens -->
     <details class="bg-gray-700 rounded-md p-2">
-      <summary class="cursor-pointer font-bold text-yellow-400">🧝 Personagem</summary>
-      {% if personagem %}
-        <p><strong>Nome:</strong> {{ personagem.nome }}</p>
-        <p><strong>Classe:</strong> {{ personagem.classe }}</p>
-        <p><strong>Raça:</strong> {{ personagem.raca }}</p>
-        <p><strong>Nível:</strong> {{ personagem.nivel }} (XP: {{ personagem.xp }})</p>
-        <p><strong>Atributos:</strong></p>
-        <ul class="list-disc ml-4">
-          {% for key, val in personagem.atributos.items() %}
-            <li>{{ key }}: {{ val }}</li>
-          {% endfor %}
-        </ul>
+      <summary class="cursor-pointer font-bold text-yellow-400">🧝 Personagens</summary>
+    
+      {% if personagens %}
+        {% for p in personagens %}
+          <div class="mb-3 border-b border-gray-600 pb-2">
+            <p><strong>Nome:</strong> {{ p.nome }}</p>
+            <p><strong>Classe:</strong> {{ p.classe }}</p>
+            <p><strong>Raça:</strong> {{ p.raca }}</p>
+            <p><strong>Nível:</strong> {{ p.nivel }} (XP: {{ p.xp }})</p>
+            <p><strong>Atributos:</strong></p>
+            <ul class="list-disc ml-4">
+              {% for key, val in p.atributos.items() %}
+                <li>{{ key }}: {{ val }}</li>
+              {% endfor %}
+            </ul>
+            <p><strong>Descrição:</strong> {{ p.descricao or '---' }}</p>
+          </div>
+        {% endfor %}
       {% else %}
         <p class="text-gray-300">Nenhum personagem associado.</p>
       {% endif %}
-      {% if personagem %}
-        <button onclick="document.getElementById('modal-personagem').classList.remove('hidden')" 
-                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500">
-          + Novo Personagem
-        </button>
-      {% endif %}
+    
+      <button onclick="document.getElementById('modal-personagem').classList.remove('hidden')" 
+              class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 mt-2">
+        + Novo Personagem
+      </button>
     </details>
+
 
     <!-- Inventário -->
     <details class="bg-gray-700 rounded-md p-2">
