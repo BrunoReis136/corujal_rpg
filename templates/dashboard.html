@@ -3,90 +3,71 @@
 {% block title %}Dashboard do Jogador{% endblock %}
 
 {% block content %}
-<div class="flex flex-col h-full w-full px-6 py-4 space-y-4">
-  <h2 class="text-3xl font-bold text-yellow-300 mb-2">📜 Aventura em andamento</h2>
+<div class="flex flex-col h-full w-full px-6 py-4 space-y-4 text-base sm:text-lg">
+  <h2 class="text-2xl sm:text-3xl font-bold text-yellow-300 mb-2">📜 Aventura em andamento</h2>
 
   <!-- Área de exibição dos turnos -->
   <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto">
-   {% if not personagem %}
-    <h2 class="text-2xl font-bold text-yellow-300 mb-4">🧝‍♂️ Pra começar, vamos criar um personagem!</h2>
-    <form method="POST" action="{{ url_for('criar_personagem') }}" class="space-y-4">
-      {{ personagem_form.hidden_tag() }}
-      <div>
-        {{ personagem_form.nome.label(class_="text-gray-200") }}
-        {{ personagem_form.nome(class_="w-full p-2 rounded bg-gray-700 text-white") }}
-      </div>
-      <div>
-        {{ personagem_form.classe.label(class_="text-gray-200") }}
-        {{ personagem_form.classe(class_="w-full p-2 rounded bg-gray-700 text-white") }}
-      </div>
-      <div>
-        {{ personagem_form.raca.label(class_="text-gray-200") }}
-        {{ personagem_form.raca(class_="w-full p-2 rounded bg-gray-700 text-white") }}
-      </div>
-      <div>
-        {{ personagem_form.descricao.label(class_="text-gray-200") }}
-        {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white") }}
-      </div>
-      <div class="grid grid-cols-3 gap-4">
+    {% if not personagem %}
+      <h2 class="text-xl sm:text-2xl font-bold text-yellow-300 mb-4">🧝‍♂️ Pra começar, vamos criar um personagem!</h2>
+      <form method="POST" action="{{ url_for('criar_personagem') }}" class="space-y-4">
+        {{ personagem_form.hidden_tag() }}
         <div>
-          <label class="block text-sm font-medium text-gray-200">Força</label>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="ajustarAtributo('forca', -1)" class="bg-gray-700 px-2 rounded">-</button>
-            <input id="forca" name="forca" type="number" value="50" min="1" max="99"
-                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
-            <button type="button" onclick="ajustarAtributo('forca', 1)" class="bg-gray-700 px-2 rounded">+</button>
-          </div>
+          {{ personagem_form.nome.label(class_="text-gray-200 text-sm sm:text-base") }}
+          {{ personagem_form.nome(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
         </div>
-      
         <div>
-          <label class="block text-sm font-medium text-gray-200">Destreza</label>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="ajustarAtributo('destreza', -1)" class="bg-gray-700 px-2 rounded">-</button>
-            <input id="destreza" name="destreza" type="number" value="50" min="1" max="99"
-                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
-            <button type="button" onclick="ajustarAtributo('destreza', 1)" class="bg-gray-700 px-2 rounded">+</button>
-          </div>
+          {{ personagem_form.classe.label(class_="text-gray-200 text-sm sm:text-base") }}
+          {{ personagem_form.classe(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
         </div>
-      
         <div>
-          <label class="block text-sm font-medium text-gray-200">Inteligência</label>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="ajustarAtributo('inteligencia', -1)" class="bg-gray-700 px-2 rounded">-</button>
-            <input id="inteligencia" name="inteligencia" type="number" value="50" min="1" max="99"
-                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
-            <button type="button" onclick="ajustarAtributo('inteligencia', 1)" class="bg-gray-700 px-2 rounded">+</button>
-          </div>
+          {{ personagem_form.raca.label(class_="text-gray-200 text-sm sm:text-base") }}
+          {{ personagem_form.raca(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
         </div>
-      </div>
-      
-      <p class="mt-2 text-yellow-400 font-bold">Pontos restantes: <span id="pontos-restantes">50</span></p>
+        <div>
+          {{ personagem_form.descricao.label(class_="text-gray-200 text-sm sm:text-base") }}
+          {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
+        </div>
 
-      
-      <div>
-        <button type="submit" name="criar_personagem" class="w-full bg-green-500 text-black font-bold py-2 rounded hover:bg-green-400 transition">
-          Criar personagem e iniciar aventura
-        </button>
-      </div>
-      
-    </form>
-  {% else %}
-    <!-- Exibição do histórico de mensagens -->
-    <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto">
-      {% for msg in mensagens %}
-        <div class="mb-4">
-          <p class="text-sm text-gray-400">{{ msg.criado_em.strftime('%d/%m %H:%M') }} - <span class="font-bold text-yellow-400">{{ msg.autor }}</span>:</p>
-          <p class="text-md">{{ msg.mensagem }}</p>
+        <div class="grid grid-cols-3 gap-4">
+          {% for attr, label in [('forca','Força'),('destreza','Destreza'),('inteligencia','Inteligência')] %}
+          <div>
+            <label class="block text-sm sm:text-base font-medium text-gray-200">{{ label }}</label>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="ajustarAtributo('{{ attr }}', -1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
+              <input id="{{ attr }}" name="{{ attr }}" type="number" value="50" min="1" max="99"
+                     class="w-16 text-center rounded bg-gray-700 text-white text-sm sm:text-base" readonly>
+              <button type="button" onclick="ajustarAtributo('{{ attr }}', 1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
+            </div>
+          </div>
+          {% endfor %}
         </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+
+        <p class="mt-2 text-yellow-400 font-bold text-sm sm:text-base">Pontos restantes: <span id="pontos-restantes">50</span></p>
+
+        <div>
+          <button type="submit" name="criar_personagem" class="w-full bg-green-500 text-black font-bold py-2 rounded hover:bg-green-400 transition text-sm sm:text-base">
+            Criar personagem e iniciar aventura
+          </button>
+        </div>
+      </form>
+    {% else %}
+      <!-- Exibição do histórico de mensagens -->
+      <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto text-sm sm:text-base">
+        {% for msg in mensagens %}
+          <div class="mb-4">
+            <p class="text-xs sm:text-sm text-gray-400">{{ msg.criado_em.strftime('%d/%m %H:%M') }} - <span class="font-bold text-yellow-400">{{ msg.autor }}</span>:</p>
+            <p class="text-sm sm:text-base">{{ msg.mensagem }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
 
 {% block sidebar %}
-<div class="flex flex-col h-full gap-4 p-4 bg-gray-800 rounded-xl shadow-md overflow-y-auto">
+<div class="flex flex-col h-full gap-4 p-4 bg-gray-800 rounded-xl shadow-md overflow-y-auto text-sm sm:text-base">
 
   <!-- Formulário de entrada -->
   <form method="POST" action="{{ url_for('enviar_turno') }}" class="space-y-3">
@@ -104,11 +85,11 @@
     </div>
   </form>
 
-  <!-- Menu de controle de presença dos personagens -->
+  <!-- Personagens na cena -->
   <details class="bg-gray-700 rounded-md p-2 mt-2">
-    <summary class="cursor-pointer font-bold text-yellow-400">🎭 Personagens na cena</summary>
+    <summary class="cursor-pointer font-bold text-yellow-400 text-sm sm:text-base">🎭 Personagens na cena</summary>
     {% if personagens %}
-      <ul class="list-disc list-inside ml-4 mt-2">
+      <ul class="list-disc list-inside ml-4 mt-2 text-sm sm:text-base">
         {% for p in personagens %}
           <li class="flex items-center gap-2">
             <input type="checkbox" name="personagem_{{ p.id }}" id="personagem_{{ p.id }}" {% if p.ativo_na_sessao %}checked{% endif %}>
@@ -116,23 +97,20 @@
           </li>
         {% endfor %}
       </ul>
-      <p class="mt-2 text-sm text-gray-300">Marque os personagens que estão em cena. As alterações serão registradas ao enviar o turno.</p>
+      <p class="mt-2 text-gray-300 text-xs sm:text-sm">Marque os personagens que estão em cena. As alterações serão registradas ao enviar o turno.</p>
     {% else %}
-      <p class="text-gray-300">Nenhum personagem criado.</p>
+      <p class="text-gray-300 text-sm sm:text-base">Nenhum personagem criado.</p>
     {% endif %}
   </details>
 
-  
-  <!-- Acordeões -->
+  <!-- Acordeões (Personagens, Inventário, Aventura, Histórico) -->
   <div class="space-y-2">
-
     <!-- Personagens -->
     <details class="bg-gray-700 rounded-md p-2">
-      <summary class="cursor-pointer font-bold text-yellow-400">🧝 Personagens</summary>
-    
+      <summary class="cursor-pointer font-bold text-yellow-400 text-sm sm:text-base">🧝 Personagens</summary>
       {% if personagens %}
         {% for p in personagens %}
-          <div class="mb-3 border-b border-gray-600 pb-2">
+          <div class="mb-3 border-b border-gray-600 pb-2 text-sm sm:text-base">
             <p><strong>Nome:</strong> {{ p.nome }}</p>
             <p><strong>Classe:</strong> {{ p.classe }}</p>
             <p><strong>Raça:</strong> {{ p.raca }}</p>
@@ -144,30 +122,25 @@
               {% endfor %}
             </ul>
             <p><strong>Descrição:</strong> {{ p.descricao or '---' }}</p>
-    
-            <!-- Botões de ação -->
             <div class="mt-2 flex gap-2">
-              <!-- Alterar -->
               <button type="button"
-                    onclick="abrirModalEdicao(
-                      {{ p.id }},
-                      '{{ p.nome }}',
-                      '{{ p.classe }}',
-                      '{{ p.raca }}',
-                      '{{ p.descricao|default('') }}',
-                      {{ p.atributos['Força'] }},
-                      {{ p.atributos['Destreza'] }},
-                      {{ p.atributos['Inteligência'] }}
-                    )"
-                    class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500">
-              Alterar
-            </button>
-    
-              <!-- Excluir -->
+                      onclick="abrirModalEdicao(
+                        {{ p.id }},
+                        '{{ p.nome }}',
+                        '{{ p.classe }}',
+                        '{{ p.raca }}',
+                        '{{ p.descricao|default('') }}',
+                        {{ p.atributos['Força'] }},
+                        {{ p.atributos['Destreza'] }},
+                        {{ p.atributos['Inteligência'] }}
+                      )"
+                      class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500 text-sm sm:text-base">
+                Alterar
+              </button>
               <form method="POST" action="{{ url_for('excluir_personagem', personagem_id=p.id) }}"
                     onsubmit="return confirm('Tem certeza que deseja excluir este personagem?')">
                 <button type="submit"
-                        class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500">
+                        class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500 text-sm sm:text-base">
                   Excluir
                 </button>
               </form>
@@ -175,136 +148,106 @@
           </div>
         {% endfor %}
       {% else %}
-        <p class="text-gray-300">Nenhum personagem associado.</p>
+        <p class="text-gray-300 text-sm sm:text-base">Nenhum personagem associado.</p>
       {% endif %}
-    
       <button onclick="document.getElementById('modal-personagem').classList.remove('hidden')" 
-              class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 mt-2">
+              class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 mt-2 text-sm sm:text-base">
         + Novo Personagem
       </button>
     </details>
 
-
-
     <!-- Inventário -->
     <details class="bg-gray-700 rounded-md p-2">
-      <summary class="cursor-pointer font-bold text-yellow-400">🎒 Inventário</summary>
+      <summary class="cursor-pointer font-bold text-yellow-400 text-sm sm:text-base">🎒 Inventário</summary>
       {% if personagem and personagem.inventario %}
-        <ul class="list-disc ml-4">
+        <ul class="list-disc ml-4 text-sm sm:text-base">
           {% for item in personagem.inventario %}
             <li>{{ item }}</li>
           {% endfor %}
         </ul>
       {% else %}
-        <p class="text-gray-300">Sem itens.</p>
+        <p class="text-gray-300 text-sm sm:text-base">Sem itens.</p>
       {% endif %}
     </details>
 
     <!-- Aventura -->
     <details class="bg-gray-700 rounded-md p-2">
-      <summary class="cursor-pointer font-bold text-yellow-400">🗺️ Aventura</summary>
+      <summary class="cursor-pointer font-bold text-yellow-400 text-sm sm:text-base">🗺️ Aventura</summary>
       {% if aventura %}
         <p><strong>Título:</strong> {{ aventura.titulo }}</p>
         <p><strong>Cenário:</strong> {{ aventura.cenario }}</p>
         <p><strong>Status:</strong> {{ aventura.status }}</p>
         <p><strong>Resumo:</strong> {{ aventura.resumo_atual }}</p>
       {% else %}
-        <p class="text-gray-300">Nenhuma aventura ativa.</p>
+        <p class="text-gray-300 text-sm sm:text-base">Nenhuma aventura ativa.</p>
       {% endif %}
     </details>
 
     <!-- Histórico -->
     <details class="bg-gray-700 rounded-md p-2">
-      <summary class="cursor-pointer font-bold text-yellow-400">📚 Histórico</summary>
+      <summary class="cursor-pointer font-bold text-yellow-400 text-sm sm:text-base">📚 Histórico</summary>
       <p>Mensagens: {{ mensagens|length }}</p>
       <p>Último turno: {{ ultima_sessao.criado_em.strftime('%d/%m %H:%M') if ultima_sessao else '---' }}</p>
     </details>
-
   </div>
 </div>
 
+<!-- Modal de Personagem -->
 <div id="modal-personagem" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-  <div class="bg-gray-900 p-6 rounded-xl w-full max-w-md shadow-lg">
-    <h2 id="form-personagem-titulo" class="text-xl font-bold text-yellow-400 mb-4">Criar Novo Personagem</h2>
-    
+  <div class="bg-gray-900 p-6 rounded-xl w-full max-w-md shadow-lg text-sm sm:text-base">
+    <h2 id="form-personagem-titulo" class="text-xl sm:text-2xl font-bold text-yellow-400 mb-4">Criar Novo Personagem</h2>
     <form method="POST" action="{{ url_for('add_personagem') }}" class="space-y-4">
       {{ personagem_form.hidden_tag() }}
       <input type="hidden" name="personagem_id" id="personagem_id" value="">
       <div>
-        {{ personagem_form.nome.label(class="block text-sm font-medium text-gray-200") }}
-        {{ personagem_form.nome(class="w-full p-2 rounded bg-gray-800 text-gray-100") }}
+        {{ personagem_form.nome.label(class="block text-sm sm:text-base font-medium text-gray-200") }}
+        {{ personagem_form.nome(class="w-full p-2 rounded bg-gray-800 text-gray-100 text-sm sm:text-base") }}
       </div>
-      
       <div>
-        {{ personagem_form.classe.label(class="block text-sm font-medium text-gray-200") }}
-        {{ personagem_form.classe(class="w-full p-2 rounded bg-gray-800 text-gray-100") }}
+        {{ personagem_form.classe.label(class="block text-sm sm:text-base font-medium text-gray-200") }}
+        {{ personagem_form.classe(class="w-full p-2 rounded bg-gray-800 text-gray-100 text-sm sm:text-base") }}
       </div>
-      
       <div>
-        {{ personagem_form.raca.label(class="block text-sm font-medium text-gray-200") }}
-        {{ personagem_form.raca(class="w-full p-2 rounded bg-gray-800 text-gray-100") }}
+        {{ personagem_form.raca.label(class="block text-sm sm:text-base font-medium text-gray-200") }}
+        {{ personagem_form.raca(class="w-full p-2 rounded bg-gray-800 text-gray-100 text-sm sm:text-base") }}
       </div>
-      
       <div>
-        {{ personagem_form.descricao.label(class_="text-gray-200") }}
-        {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+        {{ personagem_form.descricao.label(class_="text-gray-200 text-sm sm:text-base") }}
+        {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
       </div>
 
-      
       <div class="grid grid-cols-3 gap-4">
+        {% for attr, label in [('forca','Força'),('destreza','Destreza'),('inteligencia','Inteligência')] %}
         <div>
-          <label class="block text-sm font-medium text-gray-200">Força</label>
+          <label class="block text-sm sm:text-base font-medium text-gray-200">{{ label }}</label>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="ajustarAtributo('forca', -1)" class="bg-gray-700 px-2 rounded">-</button>
-            <input id="forca" name="forca" type="number" value="50" min="1" max="99"
-                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
-            <button type="button" onclick="ajustarAtributo('forca', 1)" class="bg-gray-700 px-2 rounded">+</button>
+            <button type="button" onclick="ajustarAtributo('{{ attr }}', -1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
+            <input id="{{ attr }}" name="{{ attr }}" type="number" value="50" min="1" max="99"
+                   class="w-16 text-center rounded bg-gray-700 text-white text-sm sm:text-base" readonly>
+            <button type="button" onclick="ajustarAtributo('{{ attr }}', 1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
           </div>
         </div>
-      
-        <div>
-          <label class="block text-sm font-medium text-gray-200">Destreza</label>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="ajustarAtributo('destreza', -1)" class="bg-gray-700 px-2 rounded">-</button>
-            <input id="destreza" name="destreza" type="number" value="50" min="1" max="99"
-                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
-            <button type="button" onclick="ajustarAtributo('destreza', 1)" class="bg-gray-700 px-2 rounded">+</button>
-          </div>
-        </div>
-      
-        <div>
-          <label class="block text-sm font-medium text-gray-200">Inteligência</label>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="ajustarAtributo('inteligencia', -1)" class="bg-gray-700 px-2 rounded">-</button>
-            <input id="inteligencia" name="inteligencia" type="number" value="50" min="1" max="99"
-                   class="w-16 text-center rounded bg-gray-700 text-white" readonly>
-            <button type="button" onclick="ajustarAtributo('inteligencia', 1)" class="bg-gray-700 px-2 rounded">+</button>
-          </div>
-        </div>
+        {% endfor %}
       </div>
-      
-      <p class="mt-2 text-yellow-400 font-bold">Pontos restantes: <span id="pontos-restantes">50</span></p>
-      
+
+      <p class="mt-2 text-yellow-400 font-bold text-sm sm:text-base">Pontos restantes: <span id="pontos-restantes">50</span></p>
+
       <div class="flex justify-end gap-2">
         <button type="button" onclick="document.getElementById('modal-personagem').classList.add('hidden')" 
-                class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
+                class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 text-sm sm:text-base">
           Cancelar
         </button>
-        <button id="form-personagem-titulo" type="submit" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400">
+        <button id="form-personagem-botao" type="submit" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400 text-sm sm:text-base">
           Criar
         </button>
       </div>
-      
     </form>
   </div>
 </div>
-
-
 {% endblock %}
 
-
 {% block scripts %}
-  <script>
+<script>
   document.addEventListener("click", function(e) {
     const modal = document.getElementById("modal-personagem");
     if (!modal.classList.contains("hidden") && e.target === modal) {
@@ -329,44 +272,34 @@
   function ajustarAtributo(id, delta) {
     const input = document.getElementById(id);
     let valor = parseInt(input.value);
-  
     let restantes = atualizarPontos();
-  
-    if (delta > 0 && restantes <= 0) return; // não deixa passar do limite
-    if (delta < 0 && valor <= 1) return;      // não deixa cair abaixo do mínimo
-    if (delta > 0 && valor >= 99) return;     // não deixa ultrapassar 99
-  
+    if (delta > 0 && restantes <= 0) return;
+    if (delta < 0 && valor <= 1) return;
+    if (delta > 0 && valor >= 99) return;
     input.value = valor + delta;
     atualizarPontos();
   }
   
-  // inicializa contador
   document.addEventListener("DOMContentLoaded", atualizarPontos);
 
+  function abrirModalEdicao(id, nome, classe, raca, descricao, forca, destreza, inteligencia) {
+    const modal = document.getElementById('modal-personagem');
+    modal.classList.remove('hidden');
 
- function abrirModalEdicao(id, nome, classe, raca, descricao, forca, destreza, inteligencia) {
-  const modal = document.getElementById('modal-personagem');
-  modal.classList.remove('hidden');
+    document.getElementById('personagem_id').value = id;
+    document.getElementById('nome').value = nome;
+    document.getElementById('classe').value = classe;
+    document.getElementById('raca').value = raca;
+    document.getElementById('descricao').value = descricao;
 
-  // Preenche os campos do form
-  document.getElementById('personagem_id').value = id;
-  document.getElementById('nome').value = nome;
-  document.getElementById('classe').value = classe;
-  document.getElementById('raca').value = raca;
-  document.getElementById('descricao').value = descricao;
+    document.getElementById('forca').value = forca;
+    document.getElementById('destreza').value = destreza;
+    document.getElementById('inteligencia').value = inteligencia;
 
-  // Preenche atributos
-  document.getElementById('forca').value = forca;
-  document.getElementById('destreza').value = destreza;
-  document.getElementById('inteligencia').value = inteligencia;
+    atualizarPontos();
 
-  // Atualiza contador de pontos restantes
-  atualizarPontos();
-
-  // Alterar título e botão
-  document.getElementById('form-personagem-titulo').innerText = "Editar Personagem";
-  document.getElementById('form-personagem-botao').innerText = "Salvar Alterações";
-}
-  </script>
+    document.getElementById('form-personagem-titulo').innerText = "Editar Personagem";
+    document.getElementById('form-personagem-botao').innerText = "Salvar Alterações";
+  }
+</script>
 {% endblock %}
-
