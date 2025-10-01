@@ -756,19 +756,18 @@ def add_personagem():
 
 
 
-@app.route("/add_personagem_ativo")
-def add_personagem_ativo():
+@app.route("/aumentar_tamanho_autor")
+def aumentar_tamanho_autor():
     try:
+        # ALTER TABLE para mudar o tipo da coluna autor para VARCHAR(100)
         db.session.execute(
-            text("ALTER TABLE core_personagem ADD COLUMN ativo_na_sessao BOOLEAN DEFAULT TRUE")
+            text("ALTER TABLE core_historicomensagens ALTER COLUMN autor TYPE VARCHAR(100)")
         )
         db.session.commit()
-        return "Coluna 'ativo_na_sessao' adicionada com sucesso!"
+        return "Coluna 'autor' atualizada para VARCHAR(100) com sucesso!"
     except Exception as e:
         db.session.rollback()
         return f"Erro: {e}"
-
-from flask import request, redirect, url_for, flash
 
 
 
