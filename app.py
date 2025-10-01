@@ -679,7 +679,7 @@ def add_personagem():
 
         total_pontos = forca + destreza + inteligencia
         if total_pontos > 200:
-            flash("Distribuição de atributos inválida! O total de pontos deve ser 100 adicionais à base.", "danger")
+            flash("Distribuição de atributos inválida! O total de pontos deve ser até 200.", "danger")
             return redirect(url_for("dashboard"))
 
         atributos = {
@@ -694,15 +694,28 @@ def add_personagem():
             raca=form.raca.data,
             atributos=atributos,
             descricao=form.descricao.data if hasattr(form, "descricao") else None,
-            ativo_na_sessao=False,  # por padrão todo personagem novo começa fora da cena
+            ativo_na_sessao=False,  # começa fora da cena
             usuario_id=current_user.id
         )
         db.session.add(novo)
         db.session.commit()
-        flash("Novo personagem criado com sucesso!", "success")
+
+        # Criar participação na aventura ativa
+        aventura_id = session.get("aventura_id")
+        if aventura_id:
+            participacao = Participacao(
+                usuario_id=current_user.id,
+                personagem_id=novo.id,
+                aventura_id=aventura_id
+            )
+            db.session.add(participacao)
+            db.session.commit()
+
+        flash("Novo personagem criado e vinculado à aventura!", "success")
     else:
         flash("Erro ao criar personagem. Verifique os dados.", "danger")
     return redirect(url_for("dashboard"))
+
 
 
 
