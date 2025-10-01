@@ -673,7 +673,7 @@ def add_personagem():
         inteligencia = max(1, min(99, form.inteligencia.data))
 
         total_pontos = forca + destreza + inteligencia
-        if total_pontos != 150:
+        if total_pontos > 200:
             flash("Distribuição de atributos inválida! O total de pontos deve ser 100 adicionais à base.", "danger")
             return redirect(url_for("dashboard"))
 
