@@ -144,6 +144,25 @@
               {% endfor %}
             </ul>
             <p><strong>Descrição:</strong> {{ p.descricao or '---' }}</p>
+    
+            <!-- Botões de ação -->
+            <div class="mt-2 flex gap-2">
+              <!-- Alterar -->
+              <button type="button"
+                      onclick="abrirModalEdicao({{ p.id }}, '{{ p.nome }}', '{{ p.classe }}', '{{ p.raca }}', '{{ p.descricao|default('') }}')"
+                      class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500">
+                Alterar
+              </button>
+    
+              <!-- Excluir -->
+              <form method="POST" action="{{ url_for('excluir_personagem', personagem_id=p.id) }}"
+                    onsubmit="return confirm('Tem certeza que deseja excluir este personagem?')">
+                <button type="submit"
+                        class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500">
+                  Excluir
+                </button>
+              </form>
+            </div>
           </div>
         {% endfor %}
       {% else %}
@@ -155,6 +174,7 @@
         + Novo Personagem
       </button>
     </details>
+
 
 
     <!-- Inventário -->
@@ -312,6 +332,23 @@
   
   // inicializa contador
   document.addEventListener("DOMContentLoaded", atualizarPontos);
+
+
+  function abrirModalEdicao(id, nome, classe, raca, descricao) {
+  const modal = document.getElementById('modal-personagem');
+  modal.classList.remove('hidden');
+
+  // Preenche os campos do form
+  document.getElementById('personagem_id').value = id;
+  document.getElementById('nome').value = nome;
+  document.getElementById('classe').value = classe;
+  document.getElementById('raca').value = raca;
+  document.getElementById('descricao').value = descricao;
+
+  // Alterar título e botão
+  document.getElementById('form-personagem-titulo').innerText = "Editar Personagem";
+  document.getElementById('form-personagem-botao').innerText = "Salvar Alterações";
+}
   </script>
 {% endblock %}
 
