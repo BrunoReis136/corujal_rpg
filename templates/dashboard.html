@@ -189,6 +189,14 @@
       <p>Mensagens: {{ mensagens|length }}</p>
       <p>Último turno: {{ ultima_sessao.criado_em.strftime('%d/%m %H:%M') if ultima_sessao else '---' }}</p>
     </details>
+    
+    <!-- Botão voltar para aventuras -->
+    <div class="mt-4">
+      <a href="{{ url_for('lista_aventuras') }}"
+         class="block w-full text-center bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition text-sm sm:text-base">
+        ⬅ Voltar para a lista de aventuras
+      </a>
+    </div>
   </div>
 </div>
 
