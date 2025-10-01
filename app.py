@@ -678,6 +678,9 @@ Crie a introdução da história desta aventura incluindo este personagem de for
 def add_personagem():
     form = PersonagemForm()
     if form.validate_on_submit():
+        # Captura personagem_id do hidden field para edição
+        personagem_id = request.form.get("personagem_id")
+
         # Validar atributos
         forca = max(1, min(99, form.forca.data))
         destreza = max(1, min(99, form.destreza.data))
@@ -694,33 +697,45 @@ def add_personagem():
             "Inteligência": inteligencia
         }
 
-        novo = Personagem(
-            nome=form.nome.data,
-            classe=form.classe.data,
-            raca=form.raca.data,
-            atributos=atributos,
-            descricao=form.descricao.data if hasattr(form, "descricao") else None,
-            ativo_na_sessao=False,  # começa fora da cena
-            usuario_id=current_user.id
-        )
-        db.session.add(novo)
-        db.session.commit()
-
-        # Criar participação na aventura ativa
-        aventura_id = session.get("aventura_id")
-        if aventura_id:
-            participacao = Participacao(
-                usuario_id=current_user.id,
-                personagem_id=novo.id,
-                aventura_id=aventura_id
+        if personagem_id:  # EDITAR existente
+            personagem = Personagem.query.get_or_404(personagem_id)
+            personagem.nome = form.nome.data
+            personagem.classe = form.classe.data
+            personagem.raca = form.raca.data
+            personagem.atributos = atributos
+            personagem.descricao = form.descricao.data if hasattr(form, "descricao") else None
+            db.session.commit()
+            flash("Personagem atualizado com sucesso!", "success")
+        else:  # CRIAR novo
+            novo = Personagem(
+                nome=form.nome.data,
+                classe=form.classe.data,
+                raca=form.raca.data,
+                atributos=atributos,
+                descricao=form.descricao.data if hasattr(form, "descricao") else None,
+                ativo_na_sessao=False,  # começa fora da cena
+                usuario_id=current_user.id
             )
-            db.session.add(participacao)
+            db.session.add(novo)
             db.session.commit()
 
-        flash("Novo personagem criado e vinculado à aventura!", "success")
+            # Criar participação na aventura ativa
+            aventura_id = session.get("aventura_id")
+            if aventura_id:
+                participacao = Participacao(
+                    usuario_id=current_user.id,
+                    personagem_id=novo.id,
+                    aventura_id=aventura_id
+                )
+                db.session.add(participacao)
+                db.session.commit()
+
+            flash("Novo personagem criado e vinculado à aventura!", "success")
     else:
-        flash("Erro ao criar personagem. Verifique os dados.", "danger")
+        flash("Erro ao criar/editar personagem. Verifique os dados.", "danger")
+
     return redirect(url_for("dashboard"))
+
 
 
 
@@ -739,45 +754,12 @@ def add_personagem_ativo():
 from flask import request, redirect, url_for, flash
 
 
-# Rota para editar personagem
-@app.route("/editar_personagem/<int:id>", methods=["GET", "POST"])
-def editar_personagem(id):
-    personagem = Personagem.query.get_or_404(id)
-
-    if request.method == "POST":
-        try:
-            personagem.nome = request.form["nome"]
-            personagem.classe = request.form["classe"]
-            personagem.raca = request.form["raca"]
-            personagem.nivel = int(request.form["nivel"])
-            personagem.xp = int(request.form["xp"])
-            personagem.descricao = request.form.get("descricao")
-
-            # atributos vem como dicionário (JSON no banco)
-            atributos = {
-                "forca": request.form.get("forca"),
-                "destreza": request.form.get("destreza"),
-                "constituicao": request.form.get("constituicao"),
-                "inteligencia": request.form.get("inteligencia"),
-                "sabedoria": request.form.get("sabedoria"),
-                "carisma": request.form.get("carisma")
-            }
-            personagem.atributos = atributos
-
-            db.session.commit()
-            flash("Personagem atualizado com sucesso!", "success")
-            return redirect(url_for("dashboard"))
-        except Exception as e:
-            db.session.rollback()
-            flash(f"Erro ao atualizar: {e}", "danger")
-
-    return render_template("editar_personagem.html", personagem=personagem)
 
 
 # Rota para excluir personagem
-@app.route("/excluir_personagem/<int:id>", methods=["POST"])
-def excluir_personagem(id):
-    personagem = Personagem.query.get_or_404(id)
+@app.route("/excluir_personagem/<int:personagem_id>", methods=["POST"])
+def excluir_personagem(personagem_id):
+    personagem = Personagem.query.get_or_404(personagem_id)
     try:
         db.session.delete(personagem)
         db.session.commit()
