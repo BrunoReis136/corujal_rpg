@@ -216,10 +216,11 @@
 
 <div id="modal-personagem" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
   <div class="bg-gray-900 p-6 rounded-xl w-full max-w-md shadow-lg">
-    <h2 class="text-xl font-bold text-yellow-400 mb-4">Criar Novo Personagem</h2>
+    <h2 id="form-personagem-titulo" class="text-xl font-bold text-yellow-400 mb-4">Criar Novo Personagem</h2>
     
     <form method="POST" action="{{ url_for('add_personagem') }}" class="space-y-4">
       {{ personagem_form.hidden_tag() }}
+      <input type="hidden" name="personagem_id" id="personagem_id" value="">
       <div>
         {{ personagem_form.nome.label(class="block text-sm font-medium text-gray-200") }}
         {{ personagem_form.nome(class="w-full p-2 rounded bg-gray-800 text-gray-100") }}
@@ -280,7 +281,7 @@
                 class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
           Cancelar
         </button>
-        <button type="submit" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400">
+        <button id="form-personagem-titulo" type="submit" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400">
           Criar
         </button>
       </div>
