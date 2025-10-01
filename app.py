@@ -459,15 +459,14 @@ def db_reset():
 def enviar_turno():
     form = TurnoForm()
 
+    # Validação do formulário
     if not form.validate_on_submit():
-        flash("Erro no envio do formulário.", "danger")
-        return redirect(url_for("dashboard"))
+        return jsonify({"status": "error", "error": "Erro no envio do formulário."})
 
     # Participação atual do usuário
     participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
     if not participacao:
-        flash("Você não está participando de nenhuma aventura.", "danger")
-        return redirect(url_for("lista_aventuras"))
+        return jsonify({"status": "error", "error": "Você não está participando de nenhuma aventura."})
 
     aventura = participacao.aventura
     personagem = participacao.personagem
@@ -500,10 +499,9 @@ def enviar_turno():
     if form.contexto.data:
         prompt_parts.append(f"Contexto adicional do jogador:\n{form.contexto.data}")
 
-    # Ação do jogador
     prompt_parts.append(f"Ação de {personagem.nome}:\n{form.acao.data}")
 
-    # Incluir detalhes dos personagens ativos
+    # Detalhes dos personagens ativos
     if personagens_ativos:
         detalhes_personagens = []
         for p in personagens_ativos:
@@ -528,8 +526,7 @@ def enviar_turno():
         )
         resultado_turno = response.choices[0].message.content.strip()
     except Exception as e:
-        flash(f"Erro ao processar o turno: {e}", "danger")
-        return redirect(url_for("dashboard"))
+        return jsonify({"status": "error", "error": f"Erro ao processar o turno: {e}"})
 
     # Registrar nova sessão
     nova_sessao = Sessao(
@@ -564,8 +561,18 @@ def enviar_turno():
     aventura.ultimo_turno = {"texto": resultado_turno}
     db.session.commit()
 
-    flash("Turno enviado e processado com sucesso!", "success")
-    return redirect(url_for("dashboard"))
+    # Preparar histórico para envio via AJAX
+    mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id).order_by(HistoricoMensagens.criado_em.asc()).all()
+    mensagens_serializadas = [
+        {
+            "autor": m.autor,
+            "mensagem": m.mensagem,
+            "criado_em": m.criado_em.strftime("%d/%m %H:%M")
+        } for m in mensagens
+    ]
+
+    return jsonify({"status": "ok", "mensagens": mensagens_serializadas})
+
 
 
 
