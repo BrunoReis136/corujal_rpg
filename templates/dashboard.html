@@ -321,8 +321,16 @@
       body: formData,
       headers: {"X-Requested-With": "XMLHttpRequest"}
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(async r => {
+      let data;
+      try {
+        data = await r.json();
+      } catch(e) {
+        console.error("Erro ao ler JSON:", e, await r.text());
+        alert("Erro ao processar a resposta do servidor.");
+        return;
+      }
+    
       if(data.status === "ok") {
         const historico = document.getElementById("turno-historico-inner");
         historico.innerHTML = "";
@@ -337,10 +345,13 @@
         this.querySelector("input[name='acao']").focus();
         historico.scrollTop = historico.scrollHeight;
       } else {
-        alert("Erro ao enviar turno: " + data.error);
+        alert("Erro ao enviar turno: " + (data.error || "erro desconhecido"));
       }
     })
-    .catch(err => { console.error(err); alert("Erro de conexão."); });
-  });
+    .catch(err => {
+      console.error("Erro de fetch:", err);
+      alert("Erro de conexão.");
+    });
+
 </script>
 {% endblock %}
