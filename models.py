@@ -104,5 +104,5 @@ class HistoricoMensagens(db.Model):
     aventura_id = db.Column(db.Integer, db.ForeignKey("core_aventura.id"))
     aventura = db.relationship("Aventura", backref="mensagens")
     mensagem = db.Column(db.Text)
-    autor = db.Column(db.String(20))
+    autor = db.Column(db.String(100))
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
