@@ -199,55 +199,50 @@ def logout():
     return redirect(url_for("home"))
     
 
-@app.route("/add_personagem", methods=["POST"])
+@app.route("/dashboard")
 @login_required
-def add_personagem():
-    form = PersonagemForm()
-    if form.validate_on_submit():
-        # Validar atributos
-        forca = max(1, min(99, form.forca.data))
-        destreza = max(1, min(99, form.destreza.data))
-        inteligencia = max(1, min(99, form.inteligencia.data))
+def dashboard():
+    aventura_id = session.get("aventura_id")  # pega da session
 
-        total_pontos = forca + destreza + inteligencia
-        if total_pontos > 200:
-            flash("Distribuição de atributos inválida! O total de pontos deve ser até 200.", "danger")
-            return redirect(url_for("dashboard"))
+    if not aventura_id:
+        flash("Nenhuma aventura ativa. Entre em uma aventura primeiro.", "warning")
+        return redirect(url_for("lista_aventuras"))
 
-        atributos = {
-            "Força": forca,
-            "Destreza": destreza,
-            "Inteligência": inteligencia
-        }
+    participacao = Participacao.query.filter_by(
+        usuario_id=current_user.id,
+        aventura_id=aventura_id
+    ).first()
 
-        novo = Personagem(
-            nome=form.nome.data,
-            classe=form.classe.data,
-            raca=form.raca.data,
-            atributos=atributos,
-            descricao=form.descricao.data if hasattr(form, "descricao") else None,
-            ativo_na_sessao=False,  # começa fora da cena
-            usuario_id=current_user.id
-        )
-        db.session.add(novo)
-        db.session.commit()
+    if not participacao:
+        flash("Você não participa desta aventura.", "warning")
+        return redirect(url_for("lista_aventuras"))
 
-        # Criar participação na aventura ativa
-        aventura_id = session.get("aventura_id")
-        if aventura_id:
-            participacao = Participacao(
-                usuario_id=current_user.id,
-                personagem_id=novo.id,
-                aventura_id=aventura_id
-            )
-            db.session.add(participacao)
-            db.session.commit()
+    personagem = None
+    if participacao.personagem_id:
+        personagem = Personagem.query.filter_by(id=participacao.personagem_id, usuario_id=current_user.id).first()
 
-        flash("Novo personagem criado e vinculado à aventura!", "success")
-    else:
-        flash("Erro ao criar personagem. Verifique os dados.", "danger")
-    return redirect(url_for("dashboard"))
+    aventura = participacao.aventura
 
+    mensagens = HistoricoMensagens.query \
+        .filter_by(aventura_id=aventura.id) \
+        .order_by(HistoricoMensagens.criado_em.asc()) \
+        .all()
+
+    ultima_sessao = Sessao.query \
+        .filter_by(aventura_id=aventura.id) \
+        .order_by(Sessao.criado_em.desc()) \
+        .first()
+
+    turno_form = TurnoForm()
+    personagem_form = PersonagemForm()  # usado se personagem for None
+
+
+    # Personagens do usuário nesta aventura
+    personagens = Personagem.query.join(Participacao)\
+        .filter(
+            Participacao.aventura_id == aventura.id,
+            Personagem.usuario_id == current_user.id
+        ).all()
 
     return render_template(
         "dashboard.html",
@@ -715,7 +710,6 @@ def add_personagem():
     else:
         flash("Erro ao criar personagem. Verifique os dados.", "danger")
     return redirect(url_for("dashboard"))
-
 
 
 
