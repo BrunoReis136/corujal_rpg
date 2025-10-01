@@ -736,6 +736,57 @@ def add_personagem_ativo():
         db.session.rollback()
         return f"Erro: {e}"
 
+from flask import request, redirect, url_for, flash
+
+
+# Rota para editar personagem
+@app.route("/editar_personagem/<int:id>", methods=["GET", "POST"])
+def editar_personagem(id):
+    personagem = Personagem.query.get_or_404(id)
+
+    if request.method == "POST":
+        try:
+            personagem.nome = request.form["nome"]
+            personagem.classe = request.form["classe"]
+            personagem.raca = request.form["raca"]
+            personagem.nivel = int(request.form["nivel"])
+            personagem.xp = int(request.form["xp"])
+            personagem.descricao = request.form.get("descricao")
+
+            # atributos vem como dicionário (JSON no banco)
+            atributos = {
+                "forca": request.form.get("forca"),
+                "destreza": request.form.get("destreza"),
+                "constituicao": request.form.get("constituicao"),
+                "inteligencia": request.form.get("inteligencia"),
+                "sabedoria": request.form.get("sabedoria"),
+                "carisma": request.form.get("carisma")
+            }
+            personagem.atributos = atributos
+
+            db.session.commit()
+            flash("Personagem atualizado com sucesso!", "success")
+            return redirect(url_for("dashboard"))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erro ao atualizar: {e}", "danger")
+
+    return render_template("editar_personagem.html", personagem=personagem)
+
+
+# Rota para excluir personagem
+@app.route("/excluir_personagem/<int:id>", methods=["POST"])
+def excluir_personagem(id):
+    personagem = Personagem.query.get_or_404(id)
+    try:
+        db.session.delete(personagem)
+        db.session.commit()
+        flash("Personagem excluído com sucesso!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao excluir: {e}", "danger")
+
+    return redirect(url_for("dashboard"))
 
 
 # -------------------------
