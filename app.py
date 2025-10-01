@@ -463,10 +463,18 @@ def enviar_turno():
     if not form.validate_on_submit():
         return jsonify({"status": "error", "error": "Erro no envio do formulário."})
 
-    # Participação atual do usuário
-    participacao = Participacao.query.filter_by(usuario_id=current_user.id).first()
+    # Pegar aventura ativa da session
+    aventura_id = session.get("aventura_id")
+    if not aventura_id:
+        return jsonify({"status": "error", "error": "Nenhuma aventura ativa."})
+
+    # Participação atual do usuário na aventura correta
+    participacao = Participacao.query.filter_by(
+        usuario_id=current_user.id,
+        aventura_id=aventura_id
+    ).first()
     if not participacao:
-        return jsonify({"status": "error", "error": "Você não está participando de nenhuma aventura."})
+        return jsonify({"status": "error", "error": "Você não está participando desta aventura."})
 
     aventura = participacao.aventura
     personagem = participacao.personagem
@@ -474,7 +482,7 @@ def enviar_turno():
     # Atualizar estado de 'ativo_na_sessao' conforme checkboxes
     personagens_usuario = Personagem.query.filter_by(usuario_id=current_user.id).all()
     for p in personagens_usuario:
-        marcado = f"personagem_{p.id}" in request.form  # só existe no form se marcado
+        marcado = f"personagem_{p.id}" in request.form
         if p.ativo_na_sessao != marcado:
             p.ativo_na_sessao = marcado
             db.session.add(p)
@@ -562,7 +570,8 @@ def enviar_turno():
     db.session.commit()
 
     # Preparar histórico para envio via AJAX
-    mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id).order_by(HistoricoMensagens.criado_em.asc()).all()
+    mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id)\
+        .order_by(HistoricoMensagens.criado_em.asc()).all()
     mensagens_serializadas = [
         {
             "autor": m.autor,
@@ -572,6 +581,7 @@ def enviar_turno():
     ]
 
     return jsonify({"status": "ok", "mensagens": mensagens_serializadas})
+
 
 
 
