@@ -315,6 +315,7 @@
   document.getElementById("form-turno")?.addEventListener("submit", function(e){
     e.preventDefault();
     const formData = new FormData(this);
+    formData.append("csrf_token", this.querySelector("input[name='csrf_token']").value);
 
     fetch("{{ url_for('enviar_turno') }}", {
       method: "POST",
@@ -342,7 +343,9 @@
           historico.appendChild(div);
         });
         this.reset();
-        this.querySelector("input[name='acao']").focus();
+        const acaoField = this.querySelector("[name='acao']");
+        if (acaoField) acaoField.focus();
+
         historico.scrollTop = historico.scrollHeight;
       } else {
         alert("Erro ao enviar turno: " + (data.error || "erro desconhecido"));
@@ -350,7 +353,6 @@
     })
     .catch(err => {
       console.error("Erro de fetch:", err);
-      alert("Erro de conexão.");
     });
 
 </script>
