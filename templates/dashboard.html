@@ -7,7 +7,7 @@
   <h2 class="text-2xl sm:text-3xl font-bold text-yellow-300 mb-2">📜 Aventura em andamento</h2>
 
   <!-- Área de exibição dos turnos -->
-  <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto text-sm sm:text-base">
+  <div id="turno-historico" class="bg-gray-900 text-gray-150 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto text-sm sm:text-base">
     {% if not personagem %}
       <h2 class="text-xl sm:text-2xl font-bold text-yellow-300 mb-4">🧝‍♂️ Pra começar, vamos criar um personagem!</h2>
       <form method="POST" action="{{ url_for('criar_personagem') }}" class="space-y-4">
