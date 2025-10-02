@@ -7,7 +7,7 @@
   <h2 class="text-2xl sm:text-3xl font-bold text-yellow-300 mb-2">📜 Aventura em andamento</h2>
 
   <!-- Área de exibição dos turnos -->
-  <div id="turno-historico" class="bg-gray-900 text-gray-150 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto text-sm sm:text-base">
+  <div id="turno-historico" class="bg-gray-900 text-gray-100 p-4 rounded-lg shadow-md h-[70vh] overflow-y-auto text-sm sm:text-base">
     {% if not personagem %}
       <h2 class="text-xl sm:text-2xl font-bold text-yellow-300 mb-4">🧝‍♂️ Pra começar, vamos criar um personagem!</h2>
       <form method="POST" action="{{ url_for('criar_personagem') }}" class="space-y-4">
@@ -315,23 +315,14 @@
   document.getElementById("form-turno")?.addEventListener("submit", function(e){
     e.preventDefault();
     const formData = new FormData(this);
-    formData.append("csrf_token", this.querySelector("input[name='csrf_token']").value);
 
     fetch("{{ url_for('enviar_turno') }}", {
       method: "POST",
       body: formData,
       headers: {"X-Requested-With": "XMLHttpRequest"}
     })
-    .then(async r => {
-      let data;
-      try {
-        data = await r.json();
-      } catch(e) {
-        console.error("Erro ao ler JSON:", e, await r.text());
-        alert("Erro ao processar a resposta do servidor.");
-        return;
-      }
-    
+    .then(r => r.json())
+    .then(data => {
       if(data.status === "ok") {
         const historico = document.getElementById("turno-historico-inner");
         historico.innerHTML = "";
@@ -343,17 +334,11 @@
           historico.appendChild(div);
         });
         this.reset();
-        const acaoField = this.querySelector("[name='acao']");
-        if (acaoField) acaoField.focus();
-
+        this.querySelector("input[name='acao']").focus();
         historico.scrollTop = historico.scrollHeight;
-      } else {
-        alert("Erro ao enviar turno: " + (data.error || "erro desconhecido"));
       }
     })
-    .catch(err => {
-      console.error("Erro de fetch:", err);
-    });
-
+    .catch(err => { console.error(err); alert("Erro de conexão."); });
+  });
 </script>
 {% endblock %}
