@@ -61,6 +61,10 @@
           </div>
         {% endfor %}
       </div>
+      <!-- Loader -->
+      <div id="loading-turno" class="hidden flex justify-center mt-4">
+        <img src="{{ url_for('static', filename='img/loading.gif') }}" alt="Carregando..." class="w-8 h-8">
+      </div>
     {% endif %}
   </div>
 </div>
@@ -315,7 +319,10 @@
   document.getElementById("form-turno")?.addEventListener("submit", function(e){
     e.preventDefault();
     const formData = new FormData(this);
-
+  
+    const loader = document.getElementById("loading-turno");
+    loader.classList.remove("hidden"); // 👉 mostra o loading
+  
     fetch("{{ url_for('enviar_turno') }}", {
       method: "POST",
       body: formData,
@@ -338,7 +345,13 @@
         historico.scrollTop = historico.scrollHeight;
       }
     })
-    .catch(err => { console.error(err); });
+    .catch(err => { 
+      console.error(err); 
+    })
+    .finally(() => {
+      loader.classList.add("hidden"); // 👉 sempre esconde no final
+    });
   });
+
 </script>
 {% endblock %}
