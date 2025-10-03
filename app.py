@@ -526,7 +526,7 @@ def enviar_turno():
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Você é um mestre de RPG, narrando a aventura para os jogadores."},
+                {"role": "system", "content": "Você é um mestre de RPG, narrando a aventura para os jogadores de forma concisa e interessante."},
                 {"role": "user", "content": prompt_final}
             ],
             temperature=0.8,
