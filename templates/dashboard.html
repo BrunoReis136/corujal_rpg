@@ -56,8 +56,11 @@
       <div id="turno-historico-inner">
         {% for msg in mensagens %}
           <div class="mb-4">
-            <p class="text-xs sm:text-sm text-gray-400">{{ msg.criado_em.strftime('%d/%m %H:%M') }} - <span class="font-bold text-yellow-400">{{ msg.autor }}</span>:</p>
-            <p class="text-sm sm:text-base">{{ msg.mensagem }}</p>
+            <p class="text-sm sm:text-base text-gray-400">
+              {{ msg.criado_em.strftime('%d/%m %H:%M') }} -
+              <span class="font-bold text-yellow-400">{{ msg.autor }}</span>:
+            </p>
+            <p class="text-base sm:text-lg">{{ msg.mensagem }}</p>
           </div>
         {% endfor %}
       </div>
