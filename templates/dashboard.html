@@ -74,7 +74,7 @@
 {% endblock %}
 
 {% block sidebar %}
-<div class="flex flex-col h-full gap-4 p-4 bg-gray-800 rounded-xl shadow-md overflow-y-auto text-sm sm:text-base">
+<div class="relative flex flex-col h-full gap-4 p-4 bg-gray-800 rounded-xl shadow-md overflow-y-auto text-sm sm:text-base">
 
   <!-- Formulário de entrada -->
   <form id="form-turno" method="POST" action="{{ url_for('enviar_turno') }}" class="space-y-3">
@@ -110,7 +110,7 @@
     {% endif %}
   </details>
 
-  <!-- Acordeões (Personagens, Inventário, Aventura, Histórico) -->
+  <!-- Acordeões -->
   <div class="space-y-2">
     <!-- Personagens -->
     <details class="bg-gray-700 rounded-md p-2">
@@ -205,171 +205,199 @@
       </a>
     </div>
   </div>
-</div>
 
-<!-- Modal de Personagem -->
-<div id="modal-personagem" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-  <div class="bg-gray-900 p-6 rounded-xl w-full max-w-md shadow-lg text-sm sm:text-base">
-    <h2 id="form-personagem-titulo" class="text-xl sm:text-2xl font-bold text-yellow-400 mb-4">Criar Novo Personagem</h2>
-    <form method="POST" action="{{ url_for('add_personagem') }}" class="space-y-4">
-      {{ personagem_form.hidden_tag() }}
-      <input type="hidden" name="personagem_id" id="personagem_id" value="">
-      <div>
-        {{ personagem_form.nome.label(class="block text-sm sm:text-base font-medium text-gray-200") }}
-        {{ personagem_form.nome(class="w-full p-2 rounded bg-gray-800 text-gray-100 text-sm sm:text-base") }}
-      </div>
-      <div>
-        {{ personagem_form.classe.label(class="block text-sm sm:text-base font-medium text-gray-200") }}
-        {{ personagem_form.classe(class="w-full p-2 rounded bg-gray-800 text-gray-100 text-sm sm:text-base") }}
-      </div>
-      <div>
-        {{ personagem_form.raca.label(class="block text-sm sm:text-base font-medium text-gray-200") }}
-        {{ personagem_form.raca(class="w-full p-2 rounded bg-gray-800 text-gray-100 text-sm sm:text-base") }}
-      </div>
-      <div>
-        {{ personagem_form.descricao.label(class_="text-gray-200 text-sm sm:text-base") }}
-        {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
-      </div>
-
-      <div class="grid grid-cols-3 gap-4">
-        {% for attr, label in [('forca','Força'),('destreza','Destreza'),('inteligencia','Inteligência')] %}
-        <div>
-          <label class="block text-sm sm:text-base font-medium text-gray-200">{{ label }}</label>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="ajustarAtributo('{{ attr }}', -1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
-            <input id="{{ attr }}" name="{{ attr }}" type="number" value="50" min="1" max="99"
-                   class="w-16 text-center rounded bg-gray-700 text-white text-sm sm:text-base" readonly>
-            <button type="button" onclick="ajustarAtributo('{{ attr }}', 1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-
-      <p class="mt-2 text-yellow-400 font-bold text-sm sm:text-base">Pontos restantes: <span id="pontos-restantes">50</span></p>
-
-      <div class="flex justify-end gap-2">
-        <button type="button" onclick="document.getElementById('modal-personagem').classList.add('hidden')" 
-                class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 text-sm sm:text-base">
-          Cancelar
-        </button>
-        <button id="form-personagem-botao" type="submit" class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400 text-sm sm:text-base">
-          Criar
-        </button>
-      </div>
-    </form>
+  <!-- Loader sobreposto -->
+  <div id="sidebar-loading-overlay" class="hidden absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center z-50">
+    <img src="{{ url_for('static', filename='img/loading.gif') }}" alt="Carregando..." class="w-12 h-12 mb-2">
+    <p class="text-yellow-300 text-sm font-semibold">Processando turno...</p>
   </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-  // Modal
+  // ----- Modal (fecha ao clicar fora) -----
   document.addEventListener("click", function(e) {
     const modal = document.getElementById("modal-personagem");
+    if (!modal) return;
     if (!modal.classList.contains("hidden") && e.target === modal) {
       modal.classList.add("hidden");
     }
   });
 
-  // Atributos
+  // ----- Atributos (defensivo) -----
   let pontosTotais = 50;
+
   function atualizarPontos() {
-    const forca = parseInt(document.getElementById("forca").value);
-    const destreza = parseInt(document.getElementById("destreza").value);
-    const inteligencia = parseInt(document.getElementById("inteligencia").value);
-  
+    const forcaEl = document.getElementById("forca");
+    const destrezaEl = document.getElementById("destreza");
+    const inteligenciaEl = document.getElementById("inteligencia");
+    if (!forcaEl || !destrezaEl || !inteligenciaEl) return 0;
+
+    const forca = parseInt(forcaEl.value) || 50;
+    const destreza = parseInt(destrezaEl.value) || 50;
+    const inteligencia = parseInt(inteligenciaEl.value) || 50;
+
     let usados = (forca - 50) + (destreza - 50) + (inteligencia - 50);
     let restantes = pontosTotais - usados;
-  
-    document.getElementById("pontos-restantes").innerText = restantes;
+
+    const pontosElem = document.getElementById("pontos-restantes");
+    if (pontosElem) pontosElem.innerText = restantes;
+
     return restantes;
   }
-  
+
   function ajustarAtributo(id, delta) {
     const input = document.getElementById(id);
-    let valor = parseInt(input.value);
+    if (!input) return;
+    let valor = parseInt(input.value) || 50;
     let restantes = atualizarPontos();
+
     if (delta > 0 && restantes <= 0) return;
     if (delta < 0 && valor <= 1) return;
     if (delta > 0 && valor >= 99) return;
+
     input.value = valor + delta;
     atualizarPontos();
   }
-  
-  document.addEventListener("DOMContentLoaded", atualizarPontos);
 
+  document.addEventListener("DOMContentLoaded", function() {
+    atualizarPontos();
+  });
+
+  // ----- Abrir modal de edição (defensivo) -----
   function abrirModalEdicao(id, nome, classe, raca, descricao, forca, destreza, inteligencia) {
     const modal = document.getElementById('modal-personagem');
+    if (!modal) return;
     modal.classList.remove('hidden');
 
-    document.getElementById('personagem_id').value = id;
-    document.getElementById('nome').value = nome;
-    document.getElementById('classe').value = classe;
-    document.getElementById('raca').value = raca;
-    document.getElementById('descricao').value = descricao;
+    const setIf = (elId, value) => {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      try { el.value = value ?? ""; } catch (e) {}
+    };
 
-    document.getElementById('forca').value = forca;
-    document.getElementById('destreza').value = destreza;
-    document.getElementById('inteligencia').value = inteligencia;
+    setIf('personagem_id', id);
+    setIf('nome', nome);
+    setIf('classe', classe);
+    setIf('raca', raca);
+    setIf('descricao', descricao);
+
+    setIf('forca', forca ?? 50);
+    setIf('destreza', destreza ?? 50);
+    setIf('inteligencia', inteligencia ?? 50);
 
     atualizarPontos();
 
-    document.getElementById('form-personagem-titulo').innerText = "Editar Personagem";
-    document.getElementById('form-personagem-botao').innerText = "Salvar Alterações";
+    const titulo = document.getElementById('form-personagem-titulo');
+    if (titulo) titulo.innerText = "Editar Personagem";
+    const botao = document.getElementById('form-personagem-botao');
+    if (botao) botao.innerText = "Salvar Alterações";
   }
 
-  // AJAX para envio de turno
-  document.getElementById("form-turno")?.addEventListener("submit", function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-  
-    const loader = document.getElementById("loading-turno");
-    const historico = document.getElementById("turno-historico-inner");
-  
-    // 👉 mostra o loading
-    loader.classList.remove("hidden");
-  
-    // 👉 força scroll pro final logo após mostrar o loading
-    historico.scrollTop = historico.scrollHeight;
-  
-    fetch("{{ url_for('enviar_turno') }}", {
-      method: "POST",
-      body: formData,
-      headers: { "X-Requested-With": "XMLHttpRequest" }
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.status === "ok") {
-        historico.innerHTML = "";
-        data.mensagens.forEach(msg => {
-          const div = document.createElement("div");
-          div.classList.add("mb-4");
-          div.innerHTML = `
-            <p class="text-xs sm:text-sm text-gray-400">
-              ${msg.criado_em} - <span class="font-bold text-yellow-400">${msg.autor}</span>:
-            </p>
-            <p class="text-sm sm:text-base">${msg.mensagem}</p>
-          `;
-          historico.appendChild(div);
+  // ----- AJAX para envio de turno (com loader e scroll forcing) -----
+  (function() {
+    const form = document.getElementById("form-turno");
+    if (!form) return;
+
+    // detecta loader — prioriza overlay da sidebar, senão loader genérico
+    const getLoader = () => document.getElementById("sidebar-loading-overlay") || document.getElementById("loading-turno");
+
+    // container de mensagens e caixa de scroll
+    const historicoInner = document.getElementById("turno-historico-inner");
+    const historicoBox = document.getElementById("turno-historico") || historicoInner;
+
+    form.addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const loader = getLoader();
+      // mostra loader (se existir)
+      if (loader) loader.classList.remove("hidden");
+
+      // força scroll para o final para que o usuário veja o loader
+      try { if (historicoBox) historicoBox.scrollTop = historicoBox.scrollHeight; } catch (err) { /* ignore */ }
+
+      const formData = new FormData(this); // inclui csrf se estiver no hidden_tag()
+
+      // opcional: desabilitar botão de submit para evitar multi-posts
+      const submitBtn = form.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const resp = await fetch("{{ url_for('enviar_turno') }}", {
+          method: "POST",
+          body: formData,
+          headers: { "X-Requested-With": "XMLHttpRequest" }
         });
-  
-        // reset do form + foco de volta
-        this.reset();
-        this.querySelector("input[name='acao']").focus();
-  
-        // 👉 força scroll pro final de novo, já com as novas mensagens
-        historico.scrollTop = historico.scrollHeight;
+
+        // tenta parsear JSON (tratamento defensivo)
+        let data;
+        try {
+          data = await resp.json();
+        } catch (parseErr) {
+          const txt = await resp.text().catch(()=>null);
+          console.error("Resposta inválida (não JSON) do servidor:", parseErr, txt);
+          // não exibir alert — só logar para debug
+          return;
+        }
+
+        if (data && data.status === "ok") {
+          // atualiza histórico
+          if (historicoInner) {
+            historicoInner.innerHTML = "";
+            data.mensagens.forEach(msg => {
+              const div = document.createElement("div");
+              div.classList.add("mb-4");
+              div.innerHTML = `
+                <p class="text-sm sm:text-base text-gray-400">
+                  ${msg.criado_em} - <span class="font-bold text-yellow-400">${escapeHtml(msg.autor)}</span>:
+                </p>
+                <p class="text-base sm:text-lg">${nl2br(escapeHtml(msg.mensagem))}</p>
+              `;
+              historicoInner.appendChild(div);
+            });
+          }
+
+          // reset + foco
+          this.reset();
+          const acaoField = this.querySelector("[name='acao']");
+          if (acaoField) {
+            try { acaoField.focus(); } catch(e) {}
+          }
+
+          // força scroll para final já com as novas mensagens
+          try { if (historicoBox) historicoBox.scrollTop = historicoBox.scrollHeight; } catch (err) {}
+        } else {
+          // servidor retornou status != ok — loga pro debug
+          console.error("Erro no envio do turno:", data && data.error ? data.error : data);
+        }
+
+      } catch (err) {
+        console.error("Erro no fetch enviar_turno:", err);
+      } finally {
+        // sempre reabilita e oculta loader
+        if (submitBtn) submitBtn.disabled = false;
+        if (loader) loader.classList.add("hidden");
       }
-    })
-    .catch(err => {
-      console.error(err);
-    })
-    .finally(() => {
-      // 👉 sempre esconde o loader no final
-      loader.classList.add("hidden");
     });
-  });
 
+    // util: escapando para evitar injeção de HTML ao inserir mensagens
+    function escapeHtml(str) {
+      if (str == null) return "";
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
 
+    // util: converte quebras de linha em <br> preservando segurança
+    function nl2br(str) {
+      return String(str).replace(/\r\n|\r|\n/g, "<br>");
+    }
+  })();
 </script>
 {% endblock %}
+
