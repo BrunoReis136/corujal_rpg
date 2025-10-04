@@ -1,1 +1,19 @@
 
+#sidebar-loading-overlay {
+  transition: opacity 0.3s ease;
+}
+
+#sidebar-loading-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Ajuste de texto em mensagens para celular */
+@media (max-width: 640px) {
+  #turno-historico-inner p {
+    font-size: 0.95rem !important;
+  }
+  #turno-historico-inner span {
+    font-size: 0.95rem !important;
+  }
+}
