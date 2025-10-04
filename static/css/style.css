@@ -8,6 +8,10 @@
   pointer-events: none;
 }
 
+#loading-turno img {
+  width: 100%;   /* aumenta ou diminui aqui */
+}
+
 /* Ajuste de texto em mensagens para celular */
 @media (max-width: 640px) {
   #turno-historico-inner p {
