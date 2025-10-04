@@ -63,19 +63,20 @@
                         {% else %}
                           bg-yellow-500 text-black text-right
                         {% endif %}">
-              <p class="text-xs sm:text-sm text-gray-300 mb-1">
+              <p class="text-sm md:text-base lg:text-lg mb-1 {% if eh_mestre %}text-gray-300{% else %}text-black{% endif %}">
                 {{ msg.criado_em.strftime('%d/%m %H:%M') }} -
                 <span class="font-bold {% if eh_mestre %}text-yellow-400{% else %}text-black{% endif %}">
                   {{ msg.autor }}
                 </span>
               </p>
-              <p class="text-base sm:text-lg lg:text-xl leading-relaxed break-words">
+              <p class="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-relaxed break-words">
                 {{ msg.mensagem }}
               </p>
             </div>
           </div>
         {% endfor %}
       </div>
+
     {% endif %}
   </div>
 </div>
