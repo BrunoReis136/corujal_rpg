@@ -9,7 +9,7 @@
 }
 
 #sidebar-loading-overlay img {
-  width: 100%;   /* aumenta ou diminui aqui */
+  width: 70%;   /* aumenta ou diminui aqui */
   height: auto;
   display: block; /* remove pequenos espaços em linha */
   object-fit: contain; /* opcional: garante que a imagem nunca estoure */
