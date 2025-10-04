@@ -23,27 +23,52 @@ class SignupForm(FlaskForm):
     password2 = PasswordField("Confirme a senha", validators=[DataRequired(), EqualTo('password1')])
     submit = SubmitField("Cadastrar")
 
+
 class AventuraForm(FlaskForm):
     titulo = StringField("Título", validators=[DataRequired()])
     descricao = TextAreaField("Descrição", validators=[DataRequired()])
     cenario = StringField("Cenário", validators=[DataRequired()])
 
-    # extras
     status = SelectField(
         "Status",
-        choices=[("preparacao", "Preparação"),
-                 ("andamento", "Em Andamento"),
-                 ("concluida", "Concluída")],
-        validators=[DataRequired()]
+        choices=[
+            ("preparacao", "Preparação"),
+            ("andamento", "Em Andamento"),
+            ("concluida", "Concluída"),
+        ],
+        validators=[DataRequired()],
     )
-    regras = TextAreaField("Regras (JSON)", validators=[Optional()])
+
+    # NOVOS CAMPOS DE REGRAS (rolagem de dados)
+    erro_critico_max = IntegerField(
+        "Limite de Erro Crítico (ex: 15)",
+        validators=[DataRequired()],
+        default=15,
+    )
+    erro_normal_max = IntegerField(
+        "Limite de Erro Normal (ex: 49)",
+        validators=[DataRequired()],
+        default=49,
+    )
+    acerto_normal_max = IntegerField(
+        "Limite de Acerto Normal (ex: 85)",
+        validators=[DataRequired()],
+        default=85,
+    )
+    acerto_critico_min = IntegerField(
+        "Início de Acerto Crítico (ex: 86)",
+        validators=[DataRequired()],
+        default=86,
+    )
+
     resumo_atual = TextAreaField("Resumo Atual", validators=[Optional()])
     ultimo_turno = TextAreaField("Último Turno (JSON)", validators=[Optional()])
     metadados = TextAreaField("Metadados (JSON)", validators=[Optional()])
     estado_personagens = TextAreaField("Estado dos Personagens (JSON)", validators=[Optional()])
     estado_aventura = TextAreaField("Estado da Aventura (JSON)", validators=[Optional()])
-    ativo_na_sessao = BooleanField('Ativo na sessão')
+    ativo_na_sessao = BooleanField("Ativo na sessão")
     submit = SubmitField("Salvar")
+
 
 class ForgotPasswordForm(FlaskForm):
     email = StringField("E-mail", validators=[DataRequired(), Email()])
