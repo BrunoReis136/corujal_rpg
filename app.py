@@ -45,6 +45,9 @@ serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
 db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login = "home"
+login_manager.login_view = "home"  
+login_manager.login_message = "Você precisa estar logado para acessar essa página."
+login_manager.login_message_category = "warning"
 
 mail = Mail(app)
 
