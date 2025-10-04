@@ -648,7 +648,7 @@ Regras relevantes: {json.dumps(aventura.regras, ensure_ascii=False, indent=2)}
 Personagem criado: {novo_personagem.nome}, {novo_personagem.classe}, {novo_personagem.raca}
 Atributos: {json.dumps(novo_personagem.atributos, ensure_ascii=False, indent=2)}
 
-Crie a introdução da história desta aventura incluindo este personagem de forma imersiva, sem mencionar IA.
+Crie a introdução da história desta aventura incluindo este personagem levando em consideração as informações da aventura de forma concisa e interessante, sem mencionar IA.
 """
     try:
         response = client.chat.completions.create(
