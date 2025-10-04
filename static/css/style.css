@@ -8,7 +8,7 @@
   pointer-events: none;
 }
 
-#loading-turno img {
+#sidebar-loading-overlay img {
   width: 100%;   /* aumenta ou diminui aqui */
 }
 
