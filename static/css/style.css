@@ -13,7 +13,7 @@
   height: 75%;
   display: block; /* remove pequenos espaços em linha */
   object-fit: contain; /* opcional: garante que a imagem nunca estoure */
-  transparency:10%;
+  opacity: 0.7;
 }
 
 /* Ajuste de texto em mensagens para celular */
