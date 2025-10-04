@@ -295,7 +295,12 @@ def nova_aventura():
             descricao=form.descricao.data,
             cenario=form.cenario.data,
             status=form.status.data,
-            regras=safe_json(form.regras.data),
+            regras={
+                "erro_critico_max": form.erro_critico_max.data,
+                "erro_normal_max": form.erro_normal_max.data,
+                "acerto_normal_max": form.acerto_normal_max.data,
+                "acerto_critico_min": form.acerto_critico_min.data,
+            },
             criador=current_user
         )
         db.session.add(aventura)
@@ -325,15 +330,24 @@ def editar_aventura(pk):
 
     form = AventuraForm(
         obj=aventura,
-        regras=json.dumps(aventura.regras or {}, indent=2),
+        erro_critico_max=aventura.regras.get("erro_critico_max", 15),
+        erro_normal_max=aventura.regras.get("erro_normal_max", 49),
+        acerto_normal_max=aventura.regras.get("acerto_normal_max", 85),
+        acerto_critico_min=aventura.regras.get("acerto_critico_min", 86),
     )
+
 
     if form.validate_on_submit():
         aventura.titulo = form.titulo.data
         aventura.descricao = form.descricao.data
         aventura.cenario = form.cenario.data
         aventura.status = form.status.data
-        aventura.regras = safe_json(form.regras.data)
+        aventura.regras = {
+            "erro_critico_max": form.erro_critico_max.data,
+            "erro_normal_max": form.erro_normal_max.data,
+            "acerto_normal_max": form.acerto_normal_max.data,
+            "acerto_critico_min": form.acerto_critico_min.data,
+        }
 
         db.session.commit()
         flash("Aventura atualizada.", "success")
