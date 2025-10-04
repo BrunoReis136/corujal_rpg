@@ -53,20 +53,28 @@
       </form>
     {% else %}
       <!-- Exibição do histórico de mensagens -->
-      <div id="turno-historico-inner">
+      <div id="turno-historico-inner" class="space-y-4 px-2 sm:px-4">
         {% for msg in mensagens %}
-          <div class="mb-4">
-            <p class="text-sm sm:text-base text-gray-400">
-              {{ msg.criado_em.strftime('%d/%m %H:%M') }} -
-              <span class="font-bold text-yellow-400">{{ msg.autor }}</span>:
-            </p>
-            <p class="text-base sm:text-lg">{{ msg.mensagem }}</p>
+          {% set eh_mestre = (msg.autor == "Mestre IA") %}
+          <div class="flex {% if eh_mestre %}justify-start{% else %}justify-end{% endif %}">
+            <div class="max-w-[85%] sm:max-w-[75%] rounded-xl px-3 py-2
+                        {% if eh_mestre %}
+                          bg-gray-700 text-gray-100 text-left
+                        {% else %}
+                          bg-yellow-500 text-black text-right
+                        {% endif %}">
+              <p class="text-xs sm:text-sm text-gray-300 mb-1">
+                {{ msg.criado_em.strftime('%d/%m %H:%M') }} -
+                <span class="font-bold {% if eh_mestre %}text-yellow-400{% else %}text-black{% endif %}">
+                  {{ msg.autor }}
+                </span>
+              </p>
+              <p class="text-base sm:text-lg lg:text-xl leading-relaxed break-words">
+                {{ msg.mensagem }}
+              </p>
+            </div>
           </div>
         {% endfor %}
-      </div>
-      <!-- Loader -->
-      <div id="loading-turno" class="hidden flex justify-center mt-4">
-        <img src="{{ url_for('static', filename='img/loading.gif') }}" alt="Carregando..." class="w-10 h-10">
       </div>
     {% endif %}
   </div>
@@ -206,11 +214,19 @@
     </div>
   </div>
 
-  <!-- Loader sobreposto -->
-  <div id="sidebar-loading-overlay" class="hidden absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center z-50">
-    <img src="{{ url_for('static', filename='img/loading.gif') }}" alt="Carregando..." class="w-12 h-12 mb-2">
-    <p class="text-yellow-300 text-sm font-semibold">Processando turno...</p>
+  <!-- Overlay lateral da sidebar -->
+  <div id="sidebar-loading-overlay"
+       class="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-50
+              transform transition-transform duration-700 ease-out
+              {% if not personagem %}translate-x-0{% else %}translate-x-full hidden{% endif %}">
+    <img src="{{ url_for('static', filename='img/loading.gif') }}" alt="Carregando..." class="w-20 h-20 mb-3">
+    {% if not personagem %}
+      <p class="text-yellow-300 text-lg font-bold animate-pulse">Carregando aventura...</p>
+    {% else %}
+      <p class="text-yellow-300 text-sm font-semibold">Processando turno...</p>
+    {% endif %}
   </div>
+
 </div>
 
 {% endblock %}
@@ -296,15 +312,15 @@
     if (botao) botao.innerText = "Salvar Alterações";
   }
 
-  // ----- AJAX para envio de turno (com loader e scroll forcing) -----
+  // ----- AJAX para envio de turno (com overlay animado) -----
   (function() {
     const form = document.getElementById("form-turno");
     if (!form) return;
 
-    // detecta loader — prioriza overlay da sidebar, senão loader genérico
+    // detecta loader (overlay principal ou secundário)
     const getLoader = () => document.getElementById("sidebar-loading-overlay") || document.getElementById("loading-turno");
 
-    // container de mensagens e caixa de scroll
+    // container de mensagens
     const historicoInner = document.getElementById("turno-historico-inner");
     const historicoBox = document.getElementById("turno-historico") || historicoInner;
 
@@ -312,15 +328,18 @@
       e.preventDefault();
 
       const loader = getLoader();
-      // mostra loader (se existir)
-      if (loader) loader.classList.remove("hidden");
 
-      // força scroll para o final para que o usuário veja o loader
-      try { if (historicoBox) historicoBox.scrollTop = historicoBox.scrollHeight; } catch (err) { /* ignore */ }
+      // ----- Mostra loader com animação lateral -----
+      if (loader) {
+        loader.classList.remove("hidden");
+        loader.classList.remove("translate-x-full");
+        loader.classList.add("translate-x-0");
+      }
 
-      const formData = new FormData(this); // inclui csrf se estiver no hidden_tag()
+      // Força scroll para o final (para garantir que o loader esteja visível)
+      try { if (historicoBox) historicoBox.scrollTop = historicoBox.scrollHeight; } catch (_) {}
 
-      // opcional: desabilitar botão de submit para evitar multi-posts
+      const formData = new FormData(this);
       const submitBtn = form.querySelector("button[type='submit']");
       if (submitBtn) submitBtn.disabled = true;
 
@@ -331,58 +350,59 @@
           headers: { "X-Requested-With": "XMLHttpRequest" }
         });
 
-        // tenta parsear JSON (tratamento defensivo)
         let data;
         try {
           data = await resp.json();
         } catch (parseErr) {
-          const txt = await resp.text().catch(()=>null);
-          console.error("Resposta inválida (não JSON) do servidor:", parseErr, txt);
-          // não exibir alert — só logar para debug
+          console.error("Resposta inválida do servidor:", parseErr);
           return;
         }
 
-        if (data && data.status === "ok") {
-          // atualiza histórico
-          if (historicoInner) {
-            historicoInner.innerHTML = "";
-            data.mensagens.forEach(msg => {
-              const div = document.createElement("div");
-              div.classList.add("mb-4");
-              div.innerHTML = `
-                <p class="text-sm sm:text-base text-gray-400">
-                  ${msg.criado_em} - <span class="font-bold text-yellow-400">${escapeHtml(msg.autor)}</span>:
-                </p>
-                <p class="text-base sm:text-lg">${nl2br(escapeHtml(msg.mensagem))}</p>
-              `;
-              historicoInner.appendChild(div);
-            });
-          }
+        if (data && data.status === "ok" && historicoInner) {
+          historicoInner.innerHTML = "";
+          data.mensagens.forEach(msg => {
+            const div = document.createElement("div");
+            div.classList.add("mb-4");
 
-          // reset + foco
+            // Alinhamento condicional do autor (mestre à esquerda, jogador à direita)
+            const alinhamento = msg.autor === "Mestre IA" ? "text-left" : "text-right";
+            const corTexto = msg.autor === "Mestre IA" ? "text-gray-200" : "text-yellow-300";
+
+            div.innerHTML = `
+              <div class="${alinhamento}">
+                <p class="text-sm sm:text-base text-gray-400 mb-1">
+                  ${msg.criado_em} -
+                  <span class="font-bold ${corTexto}">${escapeHtml(msg.autor)}</span>:
+                </p>
+                <p class="text-base sm:text-lg leading-relaxed">${nl2br(escapeHtml(msg.mensagem))}</p>
+              </div>
+            `;
+            historicoInner.appendChild(div);
+          });
+
           this.reset();
           const acaoField = this.querySelector("[name='acao']");
-          if (acaoField) {
-            try { acaoField.focus(); } catch(e) {}
-          }
+          if (acaoField) { try { acaoField.focus(); } catch(_) {} }
 
-          // força scroll para final já com as novas mensagens
-          try { if (historicoBox) historicoBox.scrollTop = historicoBox.scrollHeight; } catch (err) {}
+          // Scroll para o final
+          try { if (historicoBox) historicoBox.scrollTop = historicoBox.scrollHeight; } catch (_) {}
         } else {
-          // servidor retornou status != ok — loga pro debug
-          console.error("Erro no envio do turno:", data && data.error ? data.error : data);
+          console.error("Erro no envio do turno:", data);
         }
 
       } catch (err) {
         console.error("Erro no fetch enviar_turno:", err);
       } finally {
-        // sempre reabilita e oculta loader
+        // Reabilita o botão e oculta o loader com animação
         if (submitBtn) submitBtn.disabled = false;
-        if (loader) loader.classList.add("hidden");
+        if (loader) {
+          loader.classList.add("translate-x-full");
+          setTimeout(() => loader.classList.add("hidden"), 700); // espera animação sair
+        }
       }
     });
 
-    // util: escapando para evitar injeção de HTML ao inserir mensagens
+    // ----- Helpers -----
     function escapeHtml(str) {
       if (str == null) return "";
       return String(str)
@@ -393,7 +413,6 @@
         .replaceAll("'", "&#039;");
     }
 
-    // util: converte quebras de linha em <br> preservando segurança
     function nl2br(str) {
       return String(str).replace(/\r\n|\r|\n/g, "<br>");
     }
