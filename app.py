@@ -295,11 +295,11 @@ def nova_aventura():
             descricao=form.descricao.data,
             cenario=form.cenario.data,
             status=form.status.data,
-            regras={
-                "erro_critico_max": form.erro_critico_max.data,
-                "erro_normal_max": form.erro_normal_max.data,
-                "acerto_normal_max": form.acerto_normal_max.data,
-                "acerto_critico_min": form.acerto_critico_min.data,
+            regras = {
+                "erro_critico": form.erro_critico_max.data,
+                "erro_normal": form.erro_normal_max.data,
+                "acerto_normal": form.acerto_normal_max.data,
+                "acerto_critico": form.acerto_critico_min.data
             },
             criador=current_user
         )
