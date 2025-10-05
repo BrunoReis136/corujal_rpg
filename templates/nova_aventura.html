@@ -64,18 +64,14 @@
             {{ form.acerto_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white", id="acerto_normal_max") }}
           </div>
       
-          <div>
-            <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
-              🌟 Acerto Crítico (mín.)
-            </label>
-            {{ form.acerto_critico_min(class="w-full p-2 rounded-lg bg-gray-700 text-white", id="acerto_critico_min") }}
-          </div>
+          <!-- campo oculto -->
+          {{ form.acerto_critico_min(type="hidden", id="acerto_critico_min") }}
         </div>
       
         <p class="text-xs text-gray-400 mt-2">
           ⚙️ As faixas de valores serão ajustadas automaticamente para manter consistência (1–100).
         </p>
-
+      
         <!-- Faixa visual -->
         <div class="mt-4 w-full bg-gray-700 rounded-full h-5 relative overflow-hidden">
           <div id="bar-erro-critico" class="absolute left-0 top-0 h-full bg-red-600"></div>
@@ -83,12 +79,12 @@
           <div id="bar-acerto-normal" class="absolute top-0 h-full bg-green-600"></div>
           <div id="bar-acerto-critico" class="absolute top-0 h-full bg-blue-600"></div>
         </div>
-
+      
         <div class="flex justify-between text-xs text-gray-300 mt-1">
           <span>1</span>
           <span>100</span>
         </div>
-
+      
         <div class="flex justify-between text-sm text-gray-400 mt-1">
           <span>💀 Falha Crítica</span>
           <span>❌ Falha</span>
@@ -96,6 +92,7 @@
           <span>🌟 Crítico</span>
         </div>
       </div>
+
 
       <!-- botões -->
       <div class="flex gap-4">
@@ -127,19 +124,20 @@ document.addEventListener("DOMContentLoaded", () => {
     let eCrit = parseInt(erroCritico.value) || 15;
     let eNorm = parseInt(erroNormal.value) || (eCrit + 30);
     let aNorm = parseInt(acertoNormal.value) || (eNorm + 35);
-    let aCrit = parseInt(acertoCritico.value) || (aNorm + 1);
-
-    // Garantir ordem e limite
+  
+    // Garantir ordem lógica
     if (eNorm <= eCrit) eNorm = eCrit + 1;
     if (aNorm <= eNorm) aNorm = eNorm + 1;
-    if (aCrit <= aNorm) aCrit = aNorm + 1;
-    if (aCrit > 100) aCrit = 100;
-
+    if (aNorm > 99) aNorm = 99;
+  
+    // acerto crítico começa logo após acerto normal
+    const aCrit = 100;
+  
     erroCritico.value = eCrit;
     erroNormal.value = eNorm;
     acertoNormal.value = aNorm;
-    acertoCritico.value = aCrit;
-
+    acertoCritico.value = aCrit; // hidden input
+  
     atualizarFaixa(eCrit, eNorm, aNorm, aCrit);
   }
 
