@@ -101,10 +101,10 @@
     <div class="bg-gray-700 rounded-lg p-3 mb-3 text-sm text-gray-200">
       <p class="font-bold text-yellow-400 mb-1">Faixa de resultados</p>
       <div class="space-y-1">
-        <p>💀 <strong>Falha Crítica:</strong> até {{ aventura.regras.erro_critico }}</p>
-        <p>❌ <strong>Falha:</strong> até {{ aventura.regras.erro_normal }}</p>
-        <p>✅ <strong>Sucesso:</strong> até {{ aventura.regras.acerto_normal }}</p>
-        <p>🌟 <strong>Sucesso Crítico:</strong> acima de {{ aventura.regras.acerto_normal }}</p>
+        <p>💀 <strong>Falha Crítica:</strong> até {{ aventura.regras["erro_critico_max"] }}</p>
+        <p>❌ <strong>Falha:</strong> até {{ aventura.regras["erro_normal_max"] }}</p>
+        <p>✅ <strong>Sucesso:</strong> até {{ aventura.regras["acerto_normal_max"] }}</p>
+        <p>🌟 <strong>Sucesso Crítico:</strong> acima de {{ aventura.regras["acerto_normal_min"] }}</p>
       </div>
     </div>
     
