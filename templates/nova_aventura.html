@@ -18,27 +18,18 @@
       <div>
         {{ form.titulo.label(class="block mb-1 text-yellow-300") }}
         {{ form.titulo(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
-        {% for error in form.titulo.errors %}
-          <span class="text-red-400 text-sm">{{ error }}</span>
-        {% endfor %}
       </div>
 
       <!-- descrição -->
       <div>
         {{ form.descricao.label(class="block mb-1 text-yellow-300") }}
         {{ form.descricao(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
-        {% for error in form.descricao.errors %}
-          <span class="text-red-400 text-sm">{{ error }}</span>
-        {% endfor %}
       </div>
 
       <!-- cenário -->
       <div>
         {{ form.cenario.label(class="block mb-1 text-yellow-300") }}
         {{ form.cenario(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
-        {% for error in form.cenario.errors %}
-          <span class="text-red-400 text-sm">{{ error }}</span>
-        {% endfor %}
       </div>
 
       <!-- status -->
@@ -56,38 +47,55 @@
             <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
               💀 Erro Crítico (máx.)
             </label>
-            {{ form.erro_critico_max(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
+            {{ form.erro_critico_max(class="w-full p-2 rounded-lg bg-gray-700 text-white", id="erro_critico_max") }}
           </div>
       
           <div>
             <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
               ❌ Erro Normal (máx.)
             </label>
-            {{ form.erro_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
+            {{ form.erro_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white", id="erro_normal_max") }}
           </div>
       
           <div>
             <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
               ✅ Acerto Normal (máx.)
             </label>
-            {{ form.acerto_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
+            {{ form.acerto_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white", id="acerto_normal_max") }}
           </div>
       
           <div>
             <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
               🌟 Acerto Crítico (mín.)
             </label>
-            {{ form.acerto_critico_min(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
+            {{ form.acerto_critico_min(class="w-full p-2 rounded-lg bg-gray-700 text-white", id="acerto_critico_min") }}
           </div>
         </div>
       
         <p class="text-xs text-gray-400 mt-2">
           ⚙️ As faixas de valores serão ajustadas automaticamente para manter consistência (1–100).
         </p>
+
+        <!-- Faixa visual -->
+        <div class="mt-4 w-full bg-gray-700 rounded-full h-5 relative overflow-hidden">
+          <div id="bar-erro-critico" class="absolute left-0 top-0 h-full bg-red-600"></div>
+          <div id="bar-erro-normal" class="absolute top-0 h-full bg-yellow-500"></div>
+          <div id="bar-acerto-normal" class="absolute top-0 h-full bg-green-600"></div>
+          <div id="bar-acerto-critico" class="absolute top-0 h-full bg-blue-600"></div>
+        </div>
+
+        <div class="flex justify-between text-xs text-gray-300 mt-1">
+          <span>1</span>
+          <span>100</span>
+        </div>
+
+        <div class="flex justify-between text-sm text-gray-400 mt-1">
+          <span>💀 Falha Crítica</span>
+          <span>❌ Falha</span>
+          <span>✅ Acerto</span>
+          <span>🌟 Crítico</span>
+        </div>
       </div>
-
-
-
 
       <!-- botões -->
       <div class="flex gap-4">
@@ -102,10 +110,7 @@
 </div>
 {% endblock %}
 
-
-
 {% block scripts %}
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const erroCritico = document.getElementById("erro_critico_max");
@@ -113,26 +118,45 @@ document.addEventListener("DOMContentLoaded", () => {
   const acertoNormal = document.getElementById("acerto_normal_max");
   const acertoCritico = document.getElementById("acerto_critico_min");
 
+  const barEC = document.getElementById("bar-erro-critico");
+  const barEN = document.getElementById("bar-erro-normal");
+  const barAN = document.getElementById("bar-acerto-normal");
+  const barAC = document.getElementById("bar-acerto-critico");
+
   function ajustarValores() {
     let eCrit = parseInt(erroCritico.value) || 15;
     let eNorm = parseInt(erroNormal.value) || (eCrit + 30);
     let aNorm = parseInt(acertoNormal.value) || (eNorm + 35);
     let aCrit = parseInt(acertoCritico.value) || (aNorm + 1);
 
-    // Garantir ordem lógica
+    // Garantir ordem e limite
     if (eNorm <= eCrit) eNorm = eCrit + 1;
     if (aNorm <= eNorm) aNorm = eNorm + 1;
     if (aCrit <= aNorm) aCrit = aNorm + 1;
-
-    // Limites máximos
     if (aCrit > 100) aCrit = 100;
-    if (aNorm > 99) aNorm = 99;
-    if (eNorm > 98) eNorm = 98;
 
     erroCritico.value = eCrit;
     erroNormal.value = eNorm;
     acertoNormal.value = aNorm;
     acertoCritico.value = aCrit;
+
+    atualizarFaixa(eCrit, eNorm, aNorm, aCrit);
+  }
+
+  function atualizarFaixa(eCrit, eNorm, aNorm, aCrit) {
+    const total = 100;
+    const wEC = (eCrit / total) * 100;
+    const wEN = ((eNorm - eCrit) / total) * 100;
+    const wAN = ((aNorm - eNorm) / total) * 100;
+    const wAC = ((100 - aNorm) / total) * 100;
+
+    barEC.style.width = `${wEC}%`;
+    barEN.style.left = `${wEC}%`;
+    barEN.style.width = `${wEN}%`;
+    barAN.style.left = `${wEC + wEN}%`;
+    barAN.style.width = `${wAN}%`;
+    barAC.style.left = `${wEC + wEN + wAN}%`;
+    barAC.style.width = `${wAC}%`;
   }
 
   [erroCritico, erroNormal, acertoNormal, acertoCritico].forEach(el => {
@@ -142,7 +166,4 @@ document.addEventListener("DOMContentLoaded", () => {
   ajustarValores(); // inicial
 });
 </script>
-
-
 {% endblock %}
-
