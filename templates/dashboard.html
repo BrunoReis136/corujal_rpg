@@ -275,17 +275,16 @@ document.addEventListener("DOMContentLoaded", () => {
       <select class="personagem-select bg-gray-800 text-white rounded p-2 flex-1">
         <option value="">Selecione o personagem</option>
         {% for p in personagens %}
-          <option value="{{ p.id }}"
-                  data-forca="{{ p.forca }}"
-                  data-destreza="{{ p.destreza }}"
+          <option value="{{ p.id }}" 
+                  data-forca="{{ p.forca }}" 
+                  data-destreza="{{ p.destreza }}" 
                   data-inteligencia="{{ p.inteligencia }}">
             {{ p.nome }}
           </option>
         {% endfor %}
       </select>
-
-      <select class="tipo-rolagem bg-gray-800 text-white rounded p-2">
-        <option value="">Tipo</option>
+      
+      <select class="tipo-rolagem bg-gray-800 text-white rounded p-2 flex-1">
         <option value="forca">Força</option>
         <option value="destreza">Destreza</option>
         <option value="inteligencia">Inteligência</option>
