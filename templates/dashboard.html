@@ -96,9 +96,36 @@
       {{ form.contexto.label(class_="text-gray-200") }}
       {{ form.contexto(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Informações adicionais ao mestre...") }}
     </div>
+
+    <!-- Faixa de referência -->
+    <div class="bg-gray-700 rounded-lg p-3 mb-3 text-sm text-gray-200">
+      <p class="font-bold text-yellow-400 mb-1">Faixa de resultados</p>
+      <div class="space-y-1">
+        <p>💀 <strong>Falha Crítica:</strong> até {{ aventura.regras.erro_critico }}</p>
+        <p>❌ <strong>Falha:</strong> até {{ aventura.regras.erro_normal }}</p>
+        <p>✅ <strong>Sucesso:</strong> até {{ aventura.regras.acerto_normal }}</p>
+        <p>🌟 <strong>Sucesso Crítico:</strong> acima de {{ aventura.regras.acerto_normal }}</p>
+      </div>
+    </div>
+    
+    <!-- Rolar Dados -->
+    <div id="rolar-dados" class="bg-gray-800 p-4 rounded-xl mt-4 shadow-md">
+      <h3 class="text-lg font-bold text-yellow-300 mb-2">🎲 Rolar Dados</h3>
+    
+      <div id="dados-lista" class="space-y-3">
+        <!-- Cada rolagem aparece aqui -->
+      </div>
+    
+      <button type="button" id="add-dado"
+        class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 rounded-lg mt-3">
+        ➕ Adicionar Rolagem
+      </button>
+    </div>
+    
     <div>
       {{ form.submit(class_="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg hover:bg-yellow-300 transition") }}
     </div>
+    
   </form>
 
   <!-- Personagens na cena -->
@@ -234,7 +261,7 @@
 
 {% block scripts %}
 <script>
-  // ----- Modal (fecha ao clicar fora) -----
+  // ===== Modal (fecha ao clicar fora) =====
   document.addEventListener("click", function(e) {
     const modal = document.getElementById("modal-personagem");
     if (!modal) return;
@@ -243,7 +270,7 @@
     }
   });
 
-  // ----- Atributos (defensivo) -----
+  // ===== Atributos (defensivo) =====
   let pontosTotais = 50;
 
   function atualizarPontos() {
@@ -281,9 +308,16 @@
 
   document.addEventListener("DOMContentLoaded", function() {
     atualizarPontos();
+
+    // Oculta o campo "Acerto Crítico (Min)" se existir
+    const criticoMin = document.querySelector("[name='acerto_critico_min']");
+    if (criticoMin) {
+      const wrapper = criticoMin.closest(".form-group") || criticoMin.closest("div");
+      if (wrapper) wrapper.style.display = "none";
+    }
   });
 
-  // ----- Abrir modal de edição (defensivo) -----
+  // ===== Abrir modal de edição =====
   function abrirModalEdicao(id, nome, classe, raca, descricao, forca, destreza, inteligencia) {
     const modal = document.getElementById('modal-personagem');
     if (!modal) return;
@@ -300,7 +334,6 @@
     setIf('classe', classe);
     setIf('raca', raca);
     setIf('descricao', descricao);
-
     setIf('forca', forca ?? 50);
     setIf('destreza', destreza ?? 50);
     setIf('inteligencia', inteligencia ?? 50);
@@ -313,7 +346,7 @@
     if (botao) botao.innerText = "Salvar Alterações";
   }
 
-  // ----- AJAX para envio de turno (com overlay animado) -----
+  // ===== AJAX para envio de turno (com overlay animado) =====
   (function() {
     const form = document.getElementById("form-turno");
     if (!form) return;
@@ -418,6 +451,60 @@
       return String(str).replace(/\r\n|\r|\n/g, "<br>");
     }
   })();
+
+  // ===== Rolagens de Dados =====
+  document.addEventListener("DOMContentLoaded", () => {
+    const lista = document.getElementById("dados-lista");
+    const addBtn = document.getElementById("add-dado");
+  
+    function criarRolagem() {
+      const div = document.createElement("div");
+      div.className = "flex flex-wrap gap-2 items-center bg-gray-700 p-3 rounded-lg";
+  
+      div.innerHTML = `
+        <select class="personagem-select bg-gray-800 text-white rounded p-2 flex-1">
+          <option value="">Selecione o personagem</option>
+          {% for p in personagens %}
+            <option value="{{ p.id }}">{{ p.nome }}</option>
+          {% endfor %}
+        </select>
+  
+        <button type="button" class="rolar bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-2 rounded">
+          🎲 Rolar
+        </button>
+  
+        <span class="resultado text-yellow-300 font-mono ml-2">—</span>
+  
+        <button type="button" class="remover bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">
+          ✖
+        </button>
+      `;
+  
+      // Ações
+      div.querySelector(".rolar").addEventListener("click", () => {
+        const valor = Math.floor(Math.random() * 100) + 1;
+        const resultadoEl = div.querySelector(".resultado");
+  
+        // Determinar o resultado com base nas regras
+        const regras = {{ aventura.regras|tojson }};
+        let texto = "";
+        if (valor <= regras.erro_critico) texto = "💀 Falha Crítica";
+        else if (valor <= regras.erro_normal) texto = "❌ Falha";
+        else if (valor <= regras.acerto_normal) texto = "✅ Sucesso";
+        else texto = "🌟 Sucesso Crítico";
+  
+        resultadoEl.textContent = `${valor} — ${texto}`;
+        resultadoEl.dataset.valor = valor;
+        resultadoEl.dataset.texto = texto;
+      });
+  
+      div.querySelector(".remover").addEventListener("click", () => div.remove());
+      lista.appendChild(div);
+    }
+  
+    addBtn.addEventListener("click", criarRolagem);
+  });
 </script>
+
 {% endblock %}
 
