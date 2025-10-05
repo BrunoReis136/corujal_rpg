@@ -49,27 +49,43 @@
 
       <!-- regras -->
       <div>
-        <label class="block mb-1 text-yellow-300">Regras de Rolagem de Dados</label>
+        <label class="block mb-2 text-yellow-300 text-lg font-bold">🎲 Regras de Rolagem de Dados</label>
       
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-3">
           <div>
-            {{ form.erro_critico_max.label(class="block text-gray-300 text-sm mb-1") }}
+            <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
+              💀 Erro Crítico (máx.)
+            </label>
             {{ form.erro_critico_max(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
           </div>
+      
           <div>
-            {{ form.erro_normal_max.label(class="block text-gray-300 text-sm mb-1") }}
+            <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
+              ❌ Erro Normal (máx.)
+            </label>
             {{ form.erro_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
           </div>
+      
           <div>
-            {{ form.acerto_normal_max.label(class="block text-gray-300 text-sm mb-1") }}
+            <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
+              ✅ Acerto Normal (máx.)
+            </label>
             {{ form.acerto_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
           </div>
+      
           <div>
-            {{ form.acerto_critico_min.label(class="block text-gray-300 text-sm mb-1") }}
+            <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
+              🌟 Acerto Crítico (mín.)
+            </label>
             {{ form.acerto_critico_min(class="w-full p-2 rounded-lg bg-gray-700 text-white") }}
           </div>
         </div>
+      
+        <p class="text-xs text-gray-400 mt-2">
+          ⚙️ As faixas de valores serão ajustadas automaticamente para manter consistência (1–100).
+        </p>
       </div>
+
 
 
 
@@ -85,3 +101,48 @@
   </div>
 </div>
 {% endblock %}
+
+
+
+{% block scripts %}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const erroCritico = document.getElementById("erro_critico_max");
+  const erroNormal = document.getElementById("erro_normal_max");
+  const acertoNormal = document.getElementById("acerto_normal_max");
+  const acertoCritico = document.getElementById("acerto_critico_min");
+
+  function ajustarValores() {
+    let eCrit = parseInt(erroCritico.value) || 15;
+    let eNorm = parseInt(erroNormal.value) || (eCrit + 30);
+    let aNorm = parseInt(acertoNormal.value) || (eNorm + 35);
+    let aCrit = parseInt(acertoCritico.value) || (aNorm + 1);
+
+    // Garantir ordem lógica
+    if (eNorm <= eCrit) eNorm = eCrit + 1;
+    if (aNorm <= eNorm) aNorm = eNorm + 1;
+    if (aCrit <= aNorm) aCrit = aNorm + 1;
+
+    // Limites máximos
+    if (aCrit > 100) aCrit = 100;
+    if (aNorm > 99) aNorm = 99;
+    if (eNorm > 98) eNorm = 98;
+
+    erroCritico.value = eCrit;
+    erroNormal.value = eNorm;
+    acertoNormal.value = aNorm;
+    acertoCritico.value = aCrit;
+  }
+
+  [erroCritico, erroNormal, acertoNormal, acertoCritico].forEach(el => {
+    el.addEventListener("input", ajustarValores);
+  });
+
+  ajustarValores(); // inicial
+});
+</script>
+
+
+{% endblock %}
+
