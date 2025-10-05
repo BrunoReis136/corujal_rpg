@@ -309,20 +309,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const personagemSel = div.querySelector(".personagem-select");
       const tipoRolagem = div.querySelector(".tipo-rolagem").value;
       const resultadoEl = div.querySelector(".resultado");
-
+    
       if (!personagemSel || !tipoRolagem) {
         alert("Selecione o personagem e o tipo de rolagem!");
         return;
       }
-
+    
+      // rolagem base
       const valorBase = Math.floor(Math.random() * 100) + 1;
-
-      // Bonus do atributo
-      let atributo = parseInt(personagemSel.selectedOptions[0].dataset[tipoRolagem]) || 50;
+    
+      // pegar atributo como número
+      let atributo = parseInt(personagemSel.selectedOptions[0].dataset[tipoRolagem]);
+      if (isNaN(atributo)) atributo = 50;
+    
+      // calcular bônus
       let bonus = Math.floor((atributo - 50) / 2);
-
+    
+      // valor final com limite 0-100
       let valorFinal = Math.min(Math.max(valorBase + bonus, 0), 100);
-
+    
       // Determinar o texto com base nas regras
       const regras = {{ aventura.regras|tojson }};
       let texto = "";
@@ -330,8 +335,9 @@ document.addEventListener("DOMContentLoaded", () => {
       else if (valorFinal <= regras.erro_normal_max) texto = "❌ Falha";
       else if (valorFinal <= regras.acerto_normal_max) texto = "✅ Sucesso";
       else texto = "🌟 Sucesso Crítico";
-
-      resultadoEl.textContent = `${valorFinal} — ${texto} (${tipoRolagem} +${bonus})`;
+    
+      // Mostrar resultado com bônus
+      resultadoEl.textContent = `${valorFinal} — ${texto} (${tipoRolagem} ${bonus >= 0 ? "+" : ""}${bonus})`;
       resultadoEl.dataset.valor = valorFinal;
       resultadoEl.dataset.texto = texto;
     });
