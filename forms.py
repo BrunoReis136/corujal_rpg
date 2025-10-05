@@ -40,26 +40,11 @@ class AventuraForm(FlaskForm):
     )
 
     # NOVOS CAMPOS DE REGRAS (rolagem de dados)
-    erro_critico_max = IntegerField(
-        "Limite de Erro Crítico (ex: 15)",
-        validators=[DataRequired()],
-        default=15,
-    )
-    erro_normal_max = IntegerField(
-        "Limite de Erro Normal (ex: 49)",
-        validators=[DataRequired()],
-        default=49,
-    )
-    acerto_normal_max = IntegerField(
-        "Limite de Acerto Normal (ex: 85)",
-        validators=[DataRequired()],
-        default=85,
-    )
-    acerto_critico_min = IntegerField(
-        "Início de Acerto Crítico (ex: 86)",
-        validators=[DataRequired()],
-        default=86,
-    )
+    erro_critico_max = IntegerField("Erro Crítico (máx.)", default=15, validators=[Optional()])
+    erro_normal_max = IntegerField("Erro Normal (máx.)", default=49, validators=[Optional()])
+    acerto_normal_max = IntegerField("Acerto Normal (máx.)", default=85, validators=[Optional()])
+    acerto_critico_min = IntegerField("Acerto Crítico (mín.)", default=86, validators=[Optional()])
+
 
     resumo_atual = TextAreaField("Resumo Atual", validators=[Optional()])
     ultimo_turno = TextAreaField("Último Turno (JSON)", validators=[Optional()])
