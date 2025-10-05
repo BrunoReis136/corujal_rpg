@@ -276,9 +276,9 @@ document.addEventListener("DOMContentLoaded", () => {
         <option value="">Selecione o personagem</option>
         {% for p in personagens %}
           <option value="{{ p.id }}" 
-                  data-forca="{{ p.forca }}" 
-                  data-destreza="{{ p.destreza }}" 
-                  data-inteligencia="{{ p.inteligencia }}">
+                  data-forca="{{ p.atributos['Força'] }}" 
+                  data-destreza="{{ p.atributos['Destreza'] }}" 
+                  data-inteligencia="{{ p.atributos['Inteligência'] }}">
             {{ p.nome }}
           </option>
         {% endfor %}
