@@ -488,9 +488,9 @@
         // Determinar o resultado com base nas regras
         const regras = {{ aventura.regras|tojson }};
         let texto = "";
-        if (valor <= regras.erro_critico) texto = "💀 Falha Crítica";
-        else if (valor <= regras.erro_normal) texto = "❌ Falha";
-        else if (valor <= regras.acerto_normal) texto = "✅ Sucesso";
+        if (valor <= regras.erro_critico_max) texto = "💀 Falha Crítica";
+        else if (valor <= regras.erro_normal_max) texto = "❌ Falha";
+        else if (valor <= regras.acerto_normal_max) texto = "✅ Sucesso";
         else texto = "🌟 Sucesso Crítico";
   
         resultadoEl.textContent = `${valor} — ${texto}`;
