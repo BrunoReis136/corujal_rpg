@@ -259,20 +259,7 @@ def dashboard():
         .all()
     )
 
-    # Converte personagens para dicionário (usado no script/JSON)
-    personagens_data = [
-        {
-            "id": p.id,
-            "nome": p.nome,
-            "classe": p.classe,
-            "raca": p.raca,
-            "descricao": p.descricao,
-            "forca": p.forca,
-            "destreza": p.destreza,
-            "inteligencia": p.inteligencia,
-        }
-        for p in personagens
-    ]
+
 
     # Garante que a aventura tenha regras válidas (evita erro se for None)
     regras = aventura.regras if hasattr(aventura, "regras") and aventura.regras else {
@@ -286,7 +273,6 @@ def dashboard():
         "dashboard.html",
         personagem=personagem,
         personagens=personagens,
-        personagens_data=personagens_data,  # JSON usado pelo JS
         aventura=aventura,
         regras=regras,  # passa regras explícitas também
         mensagens=mensagens,
