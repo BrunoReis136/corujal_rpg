@@ -86,47 +86,47 @@
 <div class="relative flex flex-col h-full gap-4 p-4 bg-gray-800 rounded-xl shadow-md overflow-y-auto text-sm sm:text-base">
 
   <!-- Formulário de entrada -->
-  <form id="form-turno" method="POST" action="{{ url_for('enviar_turno') }}" class="space-y-3">
-    {{ form.hidden_tag() }}
-    <div>
-      {{ form.acao.label(class_="text-gray-200") }}
-      {{ form.acao(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="O que seu personagem faz?") }}
+<form id="form-turno" method="POST" action="{{ url_for('enviar_turno') }}" class="space-y-3">
+  {{ form.hidden_tag() }}
+  <div>
+    {{ form.acao.label(class_="text-gray-200") }}
+    {{ form.acao(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="O que seu personagem faz?") }}
+  </div>
+  <div>
+    {{ form.contexto.label(class_="text-gray-200") }}
+    {{ form.contexto(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Informações adicionais ao mestre...") }}
+  </div>
+
+  <!-- Faixa de referência -->
+  <div class="bg-gray-700 rounded-lg p-3 mb-3 text-sm text-gray-200">
+    <p class="font-bold text-yellow-400 mb-1">Faixa de resultados</p>
+    <div class="space-y-1">
+      <p>💀 <strong>Falha Crítica:</strong> até {{ aventura.regras["erro_critico_max"] }}</p>
+      <p>❌ <strong>Falha:</strong> até {{ aventura.regras["erro_normal_max"] }}</p>
+      <p>✅ <strong>Sucesso:</strong> até {{ aventura.regras["acerto_normal_max"] }}</p>
+      <p>🌟 <strong>Sucesso Crítico:</strong> acima de {{ aventura.regras["acerto_normal_max"] }}</p>
     </div>
-    <div>
-      {{ form.contexto.label(class_="text-gray-200") }}
-      {{ form.contexto(class_="w-full p-2 rounded-lg bg-gray-700 text-gray-200", placeholder="Informações adicionais ao mestre...") }}
+  </div>
+
+  <!-- Rolar Dados -->
+  <div id="rolar-dados" class="bg-gray-800 p-4 rounded-xl mt-4 shadow-md">
+    <h3 class="text-lg font-bold text-yellow-300 mb-2">🎲 Rolar Dados</h3>
+
+    <div id="dados-lista" class="space-y-3">
+      <!-- Cada rolagem aparecerá aqui -->
     </div>
 
-    <!-- Faixa de referência -->
-    <div class="bg-gray-700 rounded-lg p-3 mb-3 text-sm text-gray-200">
-      <p class="font-bold text-yellow-400 mb-1">Faixa de resultados</p>
-      <div class="space-y-1">
-        <p>💀 <strong>Falha Crítica:</strong> até {{ aventura.regras["erro_critico_max"] }}</p>
-        <p>❌ <strong>Falha:</strong> até {{ aventura.regras["erro_normal_max"] }}</p>
-        <p>✅ <strong>Sucesso:</strong> até {{ aventura.regras["acerto_normal_max"] }}</p>
-        <p>🌟 <strong>Sucesso Crítico:</strong> acima de {{ aventura.regras["acerto_normal_max"] }}</p>
-      </div>
-    </div>
-    
-    <!-- Rolar Dados -->
-    <div id="rolar-dados" class="bg-gray-800 p-4 rounded-xl mt-4 shadow-md">
-      <h3 class="text-lg font-bold text-yellow-300 mb-2">🎲 Rolar Dados</h3>
-    
-      <div id="dados-lista" class="space-y-3">
-        <!-- Cada rolagem aparece aqui -->
-      </div>
-    
-      <button type="button" id="add-dado"
-        class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 rounded-lg mt-3">
-        ➕ Adicionar Rolagem
-      </button>
-    </div>
-    
-    <div>
-      {{ form.submit(class_="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg hover:bg-yellow-300 transition") }}
-    </div>
-    
-  </form>
+    <button type="button" id="add-dado"
+      class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 rounded-lg mt-3">
+      ➕ Adicionar Rolagem
+    </button>
+  </div>
+
+  <div>
+    {{ form.submit(class_="w-full bg-yellow-400 text-black font-bold py-2 rounded-lg hover:bg-yellow-300 transition") }}
+  </div>
+</form>
+
 
   <!-- Personagens na cena -->
   <details class="bg-gray-700 rounded-md p-2 mt-2">
@@ -261,252 +261,90 @@
 
 {% block scripts %}
 <script>
-  // ===== Modal (fecha ao clicar fora) =====
-  document.addEventListener("click", function(e) {
-    const modal = document.getElementById("modal-personagem");
-    if (!modal) return;
-    if (!modal.classList.contains("hidden") && e.target === modal) {
-      modal.classList.add("hidden");
-    }
-  });
+document.addEventListener("DOMContentLoaded", () => {
 
-  // ===== Atributos (defensivo) =====
-  let pontosTotais = 50;
+  const lista = document.getElementById("dados-lista");
+  const addBtn = document.getElementById("add-dado");
 
-  function atualizarPontos() {
-    const forcaEl = document.getElementById("forca");
-    const destrezaEl = document.getElementById("destreza");
-    const inteligenciaEl = document.getElementById("inteligencia");
-    if (!forcaEl || !destrezaEl || !inteligenciaEl) return 0;
+  function criarRolagem() {
+    const div = document.createElement("div");
+    div.className = "flex flex-wrap gap-2 items-center bg-gray-700 p-3 rounded-lg";
 
-    const forca = parseInt(forcaEl.value) || 50;
-    const destreza = parseInt(destrezaEl.value) || 50;
-    const inteligencia = parseInt(inteligenciaEl.value) || 50;
+    // HTML da rolagem
+    div.innerHTML = `
+      <select class="personagem-select bg-gray-800 text-white rounded p-2 flex-1">
+        <option value="">Selecione o personagem</option>
+        {% for p in personagens %}
+          <option value="{{ p.id }}"
+                  data-forca="{{ p.forca }}"
+                  data-destreza="{{ p.destreza }}"
+                  data-inteligencia="{{ p.inteligencia }}">
+            {{ p.nome }}
+          </option>
+        {% endfor %}
+      </select>
 
-    let usados = (forca - 50) + (destreza - 50) + (inteligencia - 50);
-    let restantes = pontosTotais - usados;
+      <select class="tipo-rolagem bg-gray-800 text-white rounded p-2">
+        <option value="">Tipo</option>
+        <option value="forca">Força</option>
+        <option value="destreza">Destreza</option>
+        <option value="inteligencia">Inteligência</option>
+      </select>
 
-    const pontosElem = document.getElementById("pontos-restantes");
-    if (pontosElem) pontosElem.innerText = restantes;
+      <button type="button" class="rolar bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-2 rounded">
+        🎲 Rolar
+      </button>
 
-    return restantes;
-  }
+      <br>
 
-  function ajustarAtributo(id, delta) {
-    const input = document.getElementById(id);
-    if (!input) return;
-    let valor = parseInt(input.value) || 50;
-    let restantes = atualizarPontos();
+      <span class="resultado text-yellow-300 font-mono ml-2">—</span>
 
-    if (delta > 0 && restantes <= 0) return;
-    if (delta < 0 && valor <= 1) return;
-    if (delta > 0 && valor >= 99) return;
+      <button type="button" class="remover bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">
+        ✖
+      </button>
+    `;
 
-    input.value = valor + delta;
-    atualizarPontos();
-  }
+    // Evento rolar
+    div.querySelector(".rolar").addEventListener("click", () => {
+      const personagemSel = div.querySelector(".personagem-select");
+      const tipoRolagem = div.querySelector(".tipo-rolagem").value;
+      const resultadoEl = div.querySelector(".resultado");
 
-  document.addEventListener("DOMContentLoaded", function() {
-    atualizarPontos();
-
-    // Oculta o campo "Acerto Crítico (Min)" se existir
-    const criticoMin = document.querySelector("[name='acerto_critico_min']");
-    if (criticoMin) {
-      const wrapper = criticoMin.closest(".form-group") || criticoMin.closest("div");
-      if (wrapper) wrapper.style.display = "none";
-    }
-  });
-
-  // ===== Abrir modal de edição =====
-  function abrirModalEdicao(id, nome, classe, raca, descricao, forca, destreza, inteligencia) {
-    const modal = document.getElementById('modal-personagem');
-    if (!modal) return;
-    modal.classList.remove('hidden');
-
-    const setIf = (elId, value) => {
-      const el = document.getElementById(elId);
-      if (!el) return;
-      try { el.value = value ?? ""; } catch (e) {}
-    };
-
-    setIf('personagem_id', id);
-    setIf('nome', nome);
-    setIf('classe', classe);
-    setIf('raca', raca);
-    setIf('descricao', descricao);
-    setIf('forca', forca ?? 50);
-    setIf('destreza', destreza ?? 50);
-    setIf('inteligencia', inteligencia ?? 50);
-
-    atualizarPontos();
-
-    const titulo = document.getElementById('form-personagem-titulo');
-    if (titulo) titulo.innerText = "Editar Personagem";
-    const botao = document.getElementById('form-personagem-botao');
-    if (botao) botao.innerText = "Salvar Alterações";
-  }
-
-  // ===== AJAX para envio de turno (com overlay animado) =====
-  (function() {
-    const form = document.getElementById("form-turno");
-    if (!form) return;
-
-    // detecta loader (overlay principal ou secundário)
-    const getLoader = () => document.getElementById("sidebar-loading-overlay") || document.getElementById("loading-turno");
-
-    // container de mensagens
-    const historicoInner = document.getElementById("turno-historico-inner");
-    const historicoBox = document.getElementById("turno-historico") || historicoInner;
-
-    form.addEventListener("submit", async function(e) {
-      e.preventDefault();
-
-      const loader = getLoader();
-
-      // ----- Mostra loader com animação lateral -----
-      if (loader) {
-        loader.classList.remove("hidden");
-        loader.classList.remove("translate-x-full");
-        loader.classList.add("translate-x-0");
+      if (!personagemSel || !tipoRolagem) {
+        alert("Selecione o personagem e o tipo de rolagem!");
+        return;
       }
 
-      // Força scroll para o final (para garantir que o loader esteja visível)
-      try { if (historicoBox) historicoBox.scrollTop = historicoBox.scrollHeight; } catch (_) {}
+      const valorBase = Math.floor(Math.random() * 100) + 1;
 
-      const formData = new FormData(this);
-      const submitBtn = form.querySelector("button[type='submit']");
-      if (submitBtn) submitBtn.disabled = true;
+      // Bonus do atributo
+      let atributo = parseInt(personagemSel.selectedOptions[0].dataset[tipoRolagem]) || 50;
+      let bonus = Math.floor((atributo - 50) / 2);
 
-      try {
-        const resp = await fetch("{{ url_for('enviar_turno') }}", {
-          method: "POST",
-          body: formData,
-          headers: { "X-Requested-With": "XMLHttpRequest" }
-        });
+      let valorFinal = Math.min(Math.max(valorBase + bonus, 0), 100);
 
-        let data;
-        try {
-          data = await resp.json();
-        } catch (parseErr) {
-          console.error("Resposta inválida do servidor:", parseErr);
-          return;
-        }
+      // Determinar o texto com base nas regras
+      const regras = {{ aventura.regras|tojson }};
+      let texto = "";
+      if (valorFinal <= regras.erro_critico_max) texto = "💀 Falha Crítica";
+      else if (valorFinal <= regras.erro_normal_max) texto = "❌ Falha";
+      else if (valorFinal <= regras.acerto_normal_max) texto = "✅ Sucesso";
+      else texto = "🌟 Sucesso Crítico";
 
-        if (data && data.status === "ok" && historicoInner) {
-          historicoInner.innerHTML = "";
-          data.mensagens.forEach(msg => {
-            const div = document.createElement("div");
-            div.classList.add("mb-4");
-
-            // Alinhamento condicional do autor (mestre à esquerda, jogador à direita)
-            const alinhamento = msg.autor === "Mestre IA" ? "text-left" : "text-right";
-            const corTexto = msg.autor === "Mestre IA" ? "text-gray-200" : "text-yellow-300";
-
-            div.innerHTML = `
-              <div class="${alinhamento}">
-                <p class="text-sm sm:text-base text-gray-400 mb-1">
-                  ${msg.criado_em} -
-                  <span class="font-bold ${corTexto}">${escapeHtml(msg.autor)}</span>:
-                </p>
-                <p class="text-base sm:text-lg leading-relaxed">${nl2br(escapeHtml(msg.mensagem))}</p>
-              </div>
-            `;
-            historicoInner.appendChild(div);
-          });
-
-          this.reset();
-          const acaoField = this.querySelector("[name='acao']");
-          if (acaoField) { try { acaoField.focus(); } catch(_) {} }
-
-          // Scroll para o final
-          try { if (historicoBox) historicoBox.scrollTop = historicoBox.scrollHeight; } catch (_) {}
-        } else {
-          console.error("Erro no envio do turno:", data);
-        }
-
-      } catch (err) {
-        console.error("Erro no fetch enviar_turno:", err);
-      } finally {
-        // Reabilita o botão e oculta o loader com animação
-        if (submitBtn) submitBtn.disabled = false;
-        if (loader) {
-          loader.classList.add("translate-x-full");
-          setTimeout(() => loader.classList.add("hidden"), 700); // espera animação sair
-        }
-      }
+      resultadoEl.textContent = `${valorFinal} — ${texto} (${tipoRolagem} +${bonus})`;
+      resultadoEl.dataset.valor = valorFinal;
+      resultadoEl.dataset.texto = texto;
     });
 
-    // ----- Helpers -----
-    function escapeHtml(str) {
-      if (str == null) return "";
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
+    // Remover rolagem
+    div.querySelector(".remover").addEventListener("click", () => div.remove());
 
-    function nl2br(str) {
-      return String(str).replace(/\r\n|\r|\n/g, "<br>");
-    }
-  })();
+    lista.appendChild(div);
+  }
 
-  // ===== Rolagens de Dados =====
-  document.addEventListener("DOMContentLoaded", () => {
-    const lista = document.getElementById("dados-lista");
-    const addBtn = document.getElementById("add-dado");
-  
-    function criarRolagem() {
-      const div = document.createElement("div");
-      div.className = "flex flex-wrap gap-2 items-center bg-gray-700 p-3 rounded-lg";
-  
-      div.innerHTML = `
-        <select class="personagem-select bg-gray-800 text-white rounded p-2 flex-1">
-          <option value="">Selecione o personagem</option>
-          {% for p in personagens %}
-            <option value="{{ p.id }}">{{ p.nome }}</option>
-          {% endfor %}
-        </select>
-  
-        <button type="button" class="rolar bg-green-600 hover:bg-green-700 text-white font-bold px-3 py-2 rounded">
-          🎲 Rolar
-        </button>
-        
-        <br>
-        
-        <span class="resultado text-yellow-300 font-mono ml-2">—</span>
-  
-        <button type="button" class="remover bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">
-          ✖
-        </button>
-      `;
-  
-      // Ações
-      div.querySelector(".rolar").addEventListener("click", () => {
-        const valor = Math.floor(Math.random() * 100) + 1;
-        const resultadoEl = div.querySelector(".resultado");
-  
-        // Determinar o resultado com base nas regras
-        const regras = {{ aventura.regras|tojson }};
-        let texto = "";
-        if (valor <= regras.erro_critico_max) texto = "💀 Falha Crítica";
-        else if (valor <= regras.erro_normal_max) texto = "❌ Falha";
-        else if (valor <= regras.acerto_normal_max) texto = "✅ Sucesso";
-        else texto = "🌟 Sucesso Crítico";
-  
-        resultadoEl.textContent = `${valor} — ${texto}`;
-        resultadoEl.dataset.valor = valor;
-        resultadoEl.dataset.texto = texto;
-      });
-  
-      div.querySelector(".remover").addEventListener("click", () => div.remove());
-      lista.appendChild(div);
-    }
-  
-    addBtn.addEventListener("click", criarRolagem);
-  });
+  addBtn.addEventListener("click", criarRolagem);
+});
 </script>
-
 {% endblock %}
+
 
