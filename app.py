@@ -205,7 +205,7 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    aventura_id = session.get("aventura_id")  # pega da session
+    aventura_id = session.get("aventura_id")
 
     if not aventura_id:
         flash("Nenhuma aventura ativa. Entre em uma aventura primeiro.", "warning")
@@ -220,43 +220,81 @@ def dashboard():
         flash("Você não participa desta aventura.", "warning")
         return redirect(url_for("lista_aventuras"))
 
+    # Personagem atual (caso já tenha um)
     personagem = None
     if participacao.personagem_id:
-        personagem = Personagem.query.filter_by(id=participacao.personagem_id, usuario_id=current_user.id).first()
+        personagem = Personagem.query.filter_by(
+            id=participacao.personagem_id,
+            usuario_id=current_user.id
+        ).first()
 
+    # Aventura e dados relacionados
     aventura = participacao.aventura
 
-    mensagens = HistoricoMensagens.query \
-        .filter_by(aventura_id=aventura.id) \
-        .order_by(HistoricoMensagens.criado_em.asc()) \
+    mensagens = (
+        HistoricoMensagens.query
+        .filter_by(aventura_id=aventura.id)
+        .order_by(HistoricoMensagens.criado_em.asc())
         .all()
+    )
 
-    ultima_sessao = Sessao.query \
-        .filter_by(aventura_id=aventura.id) \
-        .order_by(Sessao.criado_em.desc()) \
+    ultima_sessao = (
+        Sessao.query
+        .filter_by(aventura_id=aventura.id)
+        .order_by(Sessao.criado_em.desc())
         .first()
+    )
 
     turno_form = TurnoForm()
-    personagem_form = PersonagemForm()  # usado se personagem for None
+    personagem_form = PersonagemForm()
 
-
-    # Personagens do usuário nesta aventura
-    personagens = Personagem.query.join(Participacao)\
+    # Todos os personagens do usuário nesta aventura
+    personagens = (
+        Personagem.query
+        .join(Participacao)
         .filter(
             Participacao.aventura_id == aventura.id,
             Personagem.usuario_id == current_user.id
-        ).all()
+        )
+        .all()
+    )
+
+    # Converte personagens para dicionário (usado no script/JSON)
+    personagens_data = [
+        {
+            "id": p.id,
+            "nome": p.nome,
+            "classe": p.classe,
+            "raca": p.raca,
+            "descricao": p.descricao,
+            "forca": p.forca,
+            "destreza": p.destreza,
+            "inteligencia": p.inteligencia,
+        }
+        for p in personagens
+    ]
+
+    # Garante que a aventura tenha regras válidas (evita erro se for None)
+    regras = aventura.regras if hasattr(aventura, "regras") and aventura.regras else {
+        "erro_critico": 5,
+        "erro_normal": 50,
+        "acerto_normal": 90,
+        "acerto_critico": 100
+    }
 
     return render_template(
         "dashboard.html",
         personagem=personagem,
         personagens=personagens,
+        personagens_data=personagens_data,  # JSON usado pelo JS
         aventura=aventura,
+        regras=regras,  # passa regras explícitas também
         mensagens=mensagens,
         ultima_sessao=ultima_sessao,
         form=turno_form,
         personagem_form=personagem_form
     )
+
 
 
 
@@ -282,8 +320,14 @@ def acao_jogador():
 @app.route("/aventuras/")
 @login_required
 def lista_aventuras():
-    aventuras = Aventura.query.filter_by(criador=current_user).order_by(Aventura.criada_em.desc()).all()
+    aventuras = (
+        Aventura.query
+        .filter_by(criador=current_user)
+        .order_by(Aventura.criada_em.desc())
+        .all()
+    )
     return render_template("aventuras.html", aventuras=aventuras)
+
 
 @app.route("/aventuras/nova/", methods=["GET", "POST"])
 @login_required
@@ -295,31 +339,32 @@ def nova_aventura():
             descricao=form.descricao.data,
             cenario=form.cenario.data,
             status=form.status.data,
-            regras = {
-                "erro_critico": form.erro_critico_max.data,
-                "erro_normal": form.erro_normal_max.data,
-                "acerto_normal": form.acerto_normal_max.data,
-                "acerto_critico": form.acerto_critico_min.data
+            regras={
+                "erro_critico_max": form.erro_critico_max.data,
+                "erro_normal_max": form.erro_normal_max.data,
+                "acerto_normal_max": form.acerto_normal_max.data,
+                "acerto_critico_min": 100  # sempre fixo em 100 agora
             },
             criador=current_user
         )
         db.session.add(aventura)
         db.session.commit()
 
-        # Adicionar o criador como participante
+        # Adiciona o criador como participante (padrão)
         participacao = Participacao(
             usuario_id=current_user.id,
             aventura_id=aventura.id,
-            personagem_id=None,  # Vai criar depois na dashboard
-            papel="Jogador"  # ou "Mestre", dependendo do seu sistema
+            personagem_id=None,
+            papel="Jogador"
         )
         db.session.add(participacao)
         db.session.commit()
 
-        
-        flash("Aventura criada.", "success")
+        flash("Aventura criada com sucesso.", "success")
         return redirect(url_for("lista_aventuras"))
+
     return render_template("nova_aventura.html", form=form)
+
 
 @app.route("/aventuras/<int:pk>/editar/", methods=["GET", "POST"])
 @login_required
@@ -333,9 +378,8 @@ def editar_aventura(pk):
         erro_critico_max=aventura.regras.get("erro_critico_max", 15),
         erro_normal_max=aventura.regras.get("erro_normal_max", 49),
         acerto_normal_max=aventura.regras.get("acerto_normal_max", 85),
-        acerto_critico_min=aventura.regras.get("acerto_critico_min", 86),
+        acerto_critico_min=aventura.regras.get("acerto_critico_min", 100),
     )
-
 
     if form.validate_on_submit():
         aventura.titulo = form.titulo.data
@@ -346,11 +390,11 @@ def editar_aventura(pk):
             "erro_critico_max": form.erro_critico_max.data,
             "erro_normal_max": form.erro_normal_max.data,
             "acerto_normal_max": form.acerto_normal_max.data,
-            "acerto_critico_min": form.acerto_critico_min.data,
+            "acerto_critico_min": 100  # fixo, não editável
         }
 
         db.session.commit()
-        flash("Aventura atualizada.", "success")
+        flash("Aventura atualizada com sucesso.", "success")
         return redirect(url_for("lista_aventuras"))
 
     return render_template("nova_aventura.html", form=form, editando=True)
@@ -376,11 +420,9 @@ def entrar_aventura(pk):
         db.session.add(nova_participacao)
         db.session.commit()
 
-    # salva a aventura ativa na session
     session["aventura_id"] = aventura.id
     flash(f"Entrou na aventura: {aventura.titulo}", "success")
     return redirect(url_for("dashboard"))
-
 
 
 @app.route("/aventuras/<int:pk>/excluir/", methods=["GET", "POST"])
@@ -389,11 +431,13 @@ def excluir_aventura(pk):
     aventura = Aventura.query.get_or_404(pk)
     if aventura.criador_id != current_user.id:
         abort(403)
+
     if request.method == "POST":
         db.session.delete(aventura)
         db.session.commit()
-        flash("Aventura excluída.", "success")
+        flash("Aventura excluída com sucesso.", "success")
         return redirect(url_for("lista_aventuras"))
+
     return render_template("confirma_exclusao.html", aventura=aventura)
 
 
@@ -476,6 +520,15 @@ def db_reset():
 def enviar_turno():
     form = TurnoForm()
 
+    # Capturar rolagens enviadas
+    rolagens_json = request.form.getlist("rolagem[]")
+    rolagens = []
+    for r in rolagens_json:
+        try:
+            rolagens.append(json.loads(r))
+        except Exception:
+            pass
+        
     # Validação do formulário
     if not form.validate_on_submit():
         return jsonify({"status": "error", "error": "Erro no envio do formulário."})
@@ -526,6 +579,13 @@ def enviar_turno():
 
     prompt_parts.append(f"Ação de {personagem.nome}:\n{form.acao.data}")
 
+    if rolagens:
+        rolagens_texto = "\n".join([
+            f"{r.get('personagem_id', '?')}: {r.get('valor')} — {r.get('resultado')}"
+            for r in rolagens
+        ])
+        prompt_parts.append(f"Rolagens de dados nesta rodada:\n{rolagens_texto}")
+    
     # Detalhes dos personagens ativos
     if personagens_ativos:
         detalhes_personagens = []
