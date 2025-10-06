@@ -266,6 +266,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const lista = document.getElementById("dados-lista");
   const addBtn = document.getElementById("add-dado");
 
+  // As regras da aventura são injetadas via Jinja (precisam estar disponíveis fora da função)
+  const regras = {{ aventura.regras | tojson | safe }};
+
   function criarRolagem() {
     const div = document.createElement("div");
     div.className = "flex flex-wrap gap-2 items-center bg-gray-700 p-3 rounded-lg";
@@ -294,8 +297,6 @@ document.addEventListener("DOMContentLoaded", () => {
         🎲 Rolar
       </button>
 
-      <br>
-
       <span class="resultado text-yellow-300 font-mono ml-2">—</span>
 
       <button type="button" class="remover bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">
@@ -309,47 +310,48 @@ document.addEventListener("DOMContentLoaded", () => {
       const tipoRolagem = div.querySelector(".tipo-rolagem").value;
       const resultadoEl = div.querySelector(".resultado");
     
-      if (!personagemSel || !tipoRolagem) {
+      if (!personagemSel.value || !tipoRolagem) {
         alert("Selecione o personagem e o tipo de rolagem!");
         return;
       }
     
-      // rolagem base
+      // Rolagem base (1–100)
       const valorBase = Math.floor(Math.random() * 100) + 1;
     
-      // pegar atributo como número
+      // Pega o atributo selecionado (Força, Destreza ou Inteligência)
       let atributo = parseInt(personagemSel.selectedOptions[0].dataset[tipoRolagem]);
       if (isNaN(atributo)) atributo = 50;
     
-      // calcular bônus
+      // Calcula bônus com base no desvio do valor médio 50
       let bonus = Math.floor((atributo - 50) / 2);
     
-      // valor final com limite 0-100
-      let valorFinal = Math.min(Math.max(valorBase + bonus, 0), 100);
+      // Valor final limitado entre 1 e 100
+      let valorFinal = Math.min(Math.max(valorBase + bonus, 1), 100);
     
-      // Determinar o texto com base nas regras
-      const regras = {{ aventura.regras|tojson }};
+      // Determina o resultado segundo as regras
       let texto = "";
-      if (valorFinal <= regras.erro_critico_max) texto = "💀 Falha Crítica";
+      if (valorFinal <= regras.erro_critico_min) texto = "💀 Falha Crítica";
       else if (valorFinal <= regras.erro_normal_max) texto = "❌ Falha";
       else if (valorFinal <= regras.acerto_normal_max) texto = "✅ Sucesso";
       else texto = "🌟 Sucesso Crítico";
     
-      // Mostrar resultado com bônus
+      // Exibe o resultado formatado
       resultadoEl.textContent = `${valorFinal} — ${texto} (${tipoRolagem} ${bonus >= 0 ? "+" : ""}${bonus})`;
       resultadoEl.dataset.valor = valorFinal;
       resultadoEl.dataset.texto = texto;
     });
 
-    // Remover rolagem
+    // Botão para remover rolagem
     div.querySelector(".remover").addEventListener("click", () => div.remove());
 
     lista.appendChild(div);
   }
 
+  // Evento do botão "+"
   addBtn.addEventListener("click", criarRolagem);
 });
 </script>
 {% endblock %}
+
 
 
