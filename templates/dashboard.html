@@ -350,6 +350,64 @@ document.addEventListener("DOMContentLoaded", () => {
   // Evento do botão "+"
   addBtn.addEventListener("click", criarRolagem);
 });
+
+  document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("form-turno");
+  const historico = document.getElementById("turno-historico-inner");
+  const overlay = document.getElementById("sidebar-loading-overlay");
+
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Mostra o overlay "Processando turno..."
+    overlay.classList.remove("hidden");
+    overlay.classList.remove("translate-x-full");
+    overlay.classList.add("translate-x-0");
+
+    try {
+      const formData = new FormData(form);
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao enviar turno");
+      }
+
+      const html = await response.text();
+
+      // Substitui apenas o histórico de mensagens
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const novoHistorico = doc.querySelector("#turno-historico-inner");
+
+      if (novoHistorico && historico) {
+        historico.innerHTML = novoHistorico.innerHTML;
+
+        // Rola automaticamente para o fim após a atualização
+        historico.scrollTop = historico.scrollHeight;
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao processar turno. Tente novamente.");
+    } finally {
+      // Esconde overlay após um pequeno delay
+      setTimeout(() => {
+        overlay.classList.add("translate-x-full");
+        setTimeout(() => overlay.classList.add("hidden"), 400);
+      }, 600);
+    }
+  });
+
+  // Rolar para o fim ao carregar
+  const scrollHistorico = document.getElementById("turno-historico-inner");
+  if (scrollHistorico) {
+    scrollHistorico.scrollTop = scrollHistorico.scrollHeight;
+  }
+});
 </script>
 {% endblock %}
 
