@@ -1,7 +1,7 @@
 # app.py
 import os
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for, request, flash, session, abort, jsonify
+from flask import Flask, render_template, redirect, url_for, request, flash, session, abort, jsonify, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from itsdangerous import URLSafeTimedSerializer
@@ -501,60 +501,104 @@ def db_reset():
 '''
 
 
+import json
+from flask import current_app
+
 @app.route('/enviar_turno', methods=['POST'])
 @login_required
 def enviar_turno():
     form = TurnoForm()
 
-    # Capturar rolagens enviadas
-    rolagens_json = request.form.getlist("rolagem[]")
+    # detecta se a chamada é AJAX (fetch/XHR) ou JSON
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.is_json
+
+    # --- 1) Ler rolagens (suporta vários formatos) ---
     rolagens = []
-    for r in rolagens_json:
-        try:
-            rolagens.append(json.loads(r))
-        except Exception:
-            pass
-        
-    # Validação do formulário
+    try:
+        # se cliente enviou JSON no body (ex: fetch(..., body: JSON.stringify({...})))
+        if request.is_json:
+            payload = request.get_json(silent=True) or {}
+            # payload pode ter "rolagens" (lista) ou "rolagem" (single)
+            if isinstance(payload, dict):
+                rolagens = payload.get("rolagens") or payload.get("rolagem") or []
+                # se for string JSON, tentar parsear
+                if isinstance(rolagens, str):
+                    try:
+                        rolagens = json.loads(rolagens)
+                    except Exception:
+                        rolagens = []
+        else:
+            # se formulário (FormData) com vários campos 'rolagem[]'
+            raw_list = request.form.getlist("rolagem[]")
+            if raw_list:
+                for item in raw_list:
+                    try:
+                        rolagens.append(json.loads(item))
+                    except Exception:
+                        # se não for JSON, guarda como string
+                        rolagens.append({"raw": item})
+            else:
+                # fallback: talvez o cliente tenha enviado 'rolagens' como string JSON única
+                raw = request.form.get("rolagens") or request.form.get("rolagem")
+                if raw:
+                    try:
+                        parsed = json.loads(raw)
+                        if isinstance(parsed, list):
+                            rolagens = parsed
+                        elif isinstance(parsed, dict):
+                            rolagens = [parsed]
+                    except Exception:
+                        # não conseguiu parsear - ignora
+                        current_app.logger.debug("rolagens: não foi possível parsear campo 'rolagens'")
+    except Exception as e:
+        current_app.logger.exception("Erro lendo rolagens: %s", e)
+
+    # --- 2) Validar formulário (CSRF etc) ---
     if not form.validate_on_submit():
+        # fallback: se não for AJAX, redireciona para dashboard para evitar mostrar JSON cru
+        if not is_ajax:
+            flash("Erro no envio do formulário.", "danger")
+            return redirect(url_for("dashboard"))
         return jsonify({"status": "error", "error": "Erro no envio do formulário."})
 
-    # Pegar aventura ativa da session
+    # --- 3) verificar aventura / participação ---
     aventura_id = session.get("aventura_id")
     if not aventura_id:
+        if not is_ajax: 
+            flash("Nenhuma aventura ativa.", "warning")
+            return redirect(url_for("lista_aventuras"))
         return jsonify({"status": "error", "error": "Nenhuma aventura ativa."})
 
-    # Participação atual do usuário na aventura correta
-    participacao = Participacao.query.filter_by(
-        usuario_id=current_user.id,
-        aventura_id=aventura_id
-    ).first()
+    participacao = Participacao.query.filter_by(usuario_id=current_user.id, aventura_id=aventura_id).first()
     if not participacao:
+        if not is_ajax:
+            flash("Você não está participando desta aventura.", "warning")
+            return redirect(url_for("lista_aventuras"))
         return jsonify({"status": "error", "error": "Você não está participando desta aventura."})
 
     aventura = participacao.aventura
     personagem = participacao.personagem
 
-    # Atualizar estado de 'ativo_na_sessao' conforme checkboxes
-    personagens_usuario = Personagem.query.filter_by(usuario_id=current_user.id).all()
-    for p in personagens_usuario:
-        marcado = f"personagem_{p.id}" in request.form
-        if p.ativo_na_sessao != marcado:
-            p.ativo_na_sessao = marcado
-            db.session.add(p)
-    db.session.commit()
+    # --- 4) Atualizar checkboxes de personagens ativos ---
+    try:
+        personagens_usuario = Personagem.query.filter_by(usuario_id=current_user.id).all()
+        for p in personagens_usuario:
+            marcado = f"personagem_{p.id}" in request.form
+            if p.ativo_na_sessao != marcado:
+                p.ativo_na_sessao = marcado
+                db.session.add(p)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Erro atualizando ativo_na_sessao")
 
-    # Personagens ativos da aventura inteira
+    # --- 5) Personagens ativos na aventura (construir prompt) ---
     personagens_ativos = (
         Personagem.query.join(Participacao)
-        .filter(
-            Participacao.aventura_id == aventura.id,
-            Personagem.ativo_na_sessao == True
-        )
+        .filter(Participacao.aventura_id == aventura.id, Personagem.ativo_na_sessao == True)
         .all()
     )
 
-    # Construir prompt
     prompt_parts = []
     if aventura.resumo_atual:
         prompt_parts.append(f"Resumo da aventura até agora:\n{aventura.resumo_atual}")
@@ -565,26 +609,31 @@ def enviar_turno():
 
     prompt_parts.append(f"Ação de {personagem.nome}:\n{form.acao.data}")
 
+    # anexar rolagens textualmente, se houver
     if rolagens:
-        rolagens_texto = "\n".join([
-            f"{r.get('personagem_id', '?')}: {r.get('valor')} — {r.get('resultado')}"
-            for r in rolagens
-        ])
-        prompt_parts.append(f"Rolagens de dados nesta rodada:\n{rolagens_texto}")
-    
-    # Detalhes dos personagens ativos
+        try:
+            rolagens_texto = []
+            for r in rolagens:
+                # r pode ser dicionário com keys varias (personagem_id, valor, resultado, tipo, bonus)
+                pid = r.get("personagem_id", r.get("personagem") or r.get("p", "?"))
+                valor = r.get("valor", r.get("v", "?"))
+                tipo = r.get("tipo", r.get("atributo", ""))
+                resultado = r.get("resultado", r.get("texto", r.get("resultado_texto", "")))
+                rolagens_texto.append(f"- Personagem {pid} | {tipo} => {valor} ({resultado})")
+            prompt_parts.append("Rolagens de dados nesta rodada:\n" + "\n".join(rolagens_texto))
+        except Exception:
+            current_app.logger.exception("Erro formatando rolagens para prompt")
+
     if personagens_ativos:
         detalhes_personagens = []
         for p in personagens_ativos:
             atributos_str = ", ".join([f"{k}: {v}" for k, v in (p.atributos or {}).items()])
-            detalhes_personagens.append(
-                f"- {p.nome} ({p.classe}, {atributos_str}) - {p.descricao}"
-            )
+            detalhes_personagens.append(f"- {p.nome} ({p.classe}, {atributos_str}) - {p.descricao}")
         prompt_parts.append("Personagens ativos na cena:\n" + "\n".join(detalhes_personagens))
 
     prompt_final = "\n\n".join(prompt_parts)
 
-    # Chamada à OpenAI
+    # --- 6) Chamada IA (mantive seu bloco) ---
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -597,53 +646,65 @@ def enviar_turno():
         )
         resultado_turno = response.choices[0].message.content.strip()
     except Exception as e:
+        current_app.logger.exception("Erro OpenAI: %s", e)
+        if not is_ajax:
+            flash("Erro ao processar o turno (IA).", "danger")
+            return redirect(url_for("dashboard"))
         return jsonify({"status": "error", "error": f"Erro ao processar o turno: {e}"})
 
-    # Registrar nova sessão
-    nova_sessao = Sessao(
-        aventura_id=aventura.id,
-        narrador_ia=resultado_turno,
-        acoes_jogadores=[form.acao.data],
-        resultado=resultado_turno,
-        prompt_usado=prompt_final,
-        resposta_bruta=str(response)
-    )
-    db.session.add(nova_sessao)
+    # --- 7) Gravar sessão e histórico (igual ao seu fluxo) ---
+    try:
+        nova_sessao = Sessao(
+            aventura_id=aventura.id,
+            narrador_ia=resultado_turno,
+            acoes_jogadores=[form.acao.data],
+            resultado=resultado_turno,
+            prompt_usado=prompt_final,
+            resposta_bruta=str(response)
+        )
+        db.session.add(nova_sessao)
 
-    # Histórico - ação do jogador
-    mensagem_jogador = HistoricoMensagens(
-        usuario_id=current_user.id,
-        aventura_id=aventura.id,
-        mensagem=form.acao.data,
-        autor=personagem.nome
-    )
-    db.session.add(mensagem_jogador)
+        mensagem_jogador = HistoricoMensagens(
+            usuario_id=current_user.id,
+            aventura_id=aventura.id,
+            mensagem=form.acao.data,
+            autor=personagem.nome
+        )
+        db.session.add(mensagem_jogador)
 
-    # Histórico - resposta do mestre IA
-    mensagem_mestre = HistoricoMensagens(
-        usuario_id=None,
-        aventura_id=aventura.id,
-        mensagem=resultado_turno,
-        autor="Mestre IA"
-    )
-    db.session.add(mensagem_mestre)
+        mensagem_mestre = HistoricoMensagens(
+            usuario_id=None,
+            aventura_id=aventura.id,
+            mensagem=resultado_turno,
+            autor="Mestre IA"
+        )
+        db.session.add(mensagem_mestre)
 
-    # Atualizar último turno na aventura
-    aventura.ultimo_turno = {"texto": resultado_turno}
-    db.session.commit()
+        aventura.ultimo_turno = {"texto": resultado_turno}
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Erro gravando sessão/histórico")
+        if not is_ajax:
+            flash("Erro ao salvar o turno.", "danger")
+            return redirect(url_for("dashboard"))
+        return jsonify({"status": "error", "error": "Erro ao salvar o turno."})
 
-    # Preparar histórico para envio via AJAX
+    # --- 8) Preparar resposta ---
     mensagens = HistoricoMensagens.query.filter_by(aventura_id=aventura.id)\
         .order_by(HistoricoMensagens.criado_em.asc()).all()
     mensagens_serializadas = [
-        {
-            "autor": m.autor,
-            "mensagem": m.mensagem,
-            "criado_em": m.criado_em.strftime("%d/%m %H:%M")
-        } for m in mensagens
+        {"autor": m.autor, "mensagem": m.mensagem, "criado_em": m.criado_em.strftime("%d/%m %H:%M")}
+        for m in mensagens
     ]
 
+    if not is_ajax:
+        # se o envio foi normal (sem JS), redireciona para dashboard (evita mostrar JSON cru)
+        flash("Turno enviado.", "success")
+        return redirect(url_for("dashboard"))
+
     return jsonify({"status": "ok", "mensagens": mensagens_serializadas})
+
 
 
 
