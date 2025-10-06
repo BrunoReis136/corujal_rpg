@@ -633,6 +633,8 @@ def enviar_turno():
 
     prompt_final = "\n\n".join(prompt_parts)
 
+    current_app.logger.info(f"PROMPT FINAL ENVIADO À IA:\n{prompt_final}")
+    
     # --- 6) Chamada IA (mantive seu bloco) ---
     try:
         response = client.chat.completions.create(
