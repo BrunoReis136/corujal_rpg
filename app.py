@@ -605,7 +605,7 @@ def enviar_turno():
     if aventura.ultimo_turno:
         prompt_parts.append(f"Último turno:\n{aventura.ultimo_turno.get('texto', '')}")
     if form.contexto.data:
-        prompt_parts.append(f"Contexto adicional do jogador:\n{form.contexto.data}")
+        prompt_parts.append(f"Importante! Considere a seguinte instrução adicional do jogador:\n{form.contexto.data}")
 
     prompt_parts.append(f"Ação de {personagem.nome}:\n{form.acao.data}")
 
