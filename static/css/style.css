@@ -1,6 +1,7 @@
 
 #sidebar-loading-overlay {
   transition: opacity 0.3s ease;
+  height:100%;
 }
 
 #sidebar-loading-overlay.hidden {
