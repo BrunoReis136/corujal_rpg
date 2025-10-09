@@ -262,7 +262,12 @@
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-
+  
+  const historico = document.getElementById("turno-historico-inner");
+    if (historico) {
+      historico.scrollTop = historico.scrollHeight;
+    }
+  
   const lista = document.getElementById("dados-lista");
   const addBtn = document.getElementById("add-dado");
 
@@ -360,45 +365,82 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    // Mostra o overlay "Processando turno..."
+  
     overlay.classList.remove("hidden");
     overlay.classList.remove("translate-x-full");
     overlay.classList.add("translate-x-0");
-
+  
     try {
       const formData = new FormData(form);
+  
+      // Monta também as rolagens (dados visuais da seção "🎲 Rolar Dados")
+      const rolagens = [];
+      document.querySelectorAll("#dados-lista > div").forEach((div) => {
+        const personagemSel = div.querySelector(".personagem-select");
+        const tipo = div.querySelector(".tipo-rolagem")?.value;
+        const resultadoEl = div.querySelector(".resultado");
+        if (personagemSel?.value && tipo && resultadoEl?.dataset?.valor) {
+          rolagens.push({
+            personagem_id: personagemSel.value,
+            tipo: tipo,
+            valor: resultadoEl.dataset.valor,
+            texto: resultadoEl.dataset.texto,
+          });
+        }
+      });
+  
+      // Inclui as rolagens como JSON
+      formData.append("rolagens", JSON.stringify(rolagens));
+  
       const response = await fetch(form.action, {
         method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest" // para Flask saber que é AJAX
+        },
         body: formData,
       });
-
-      if (!response.ok) {
-        throw new Error("Erro ao enviar turno");
+  
+      const result = await response.json();
+  
+      if (result.status !== "ok") {
+        alert(result.error || "Erro ao processar turno.");
+        return;
       }
-
-      const html = await response.text();
-
-      // Substitui apenas o histórico de mensagens
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      const novoHistorico = doc.querySelector("#turno-historico-inner");
-
-      if (novoHistorico && historico) {
-        historico.innerHTML = novoHistorico.innerHTML;
-
-        // Rola automaticamente para o fim após a atualização
-        historico.scrollTop = historico.scrollHeight;
-      }
+  
+      // Atualiza o histórico de mensagens
+      const historico = document.getElementById("turno-historico-inner");
+      historico.innerHTML = "";
+  
+      result.mensagens.forEach((msg) => {
+        const ehMestre = msg.autor === "Mestre IA";
+        const div = document.createElement("div");
+        div.className = `flex ${ehMestre ? "justify-start" : "justify-end"}`;
+        div.innerHTML = `
+          <div class="max-w-[85%] sm:max-w-[75%] rounded-xl px-3 py-2
+                      ${ehMestre ? "bg-gray-700 text-gray-100 text-left" : "bg-yellow-500 text-black text-right"}">
+            <p class="text-sm md:text-base lg:text-lg mb-1 ${ehMestre ? "text-gray-300" : "text-black"}">
+              ${msg.criado_em} -
+              <span class="font-bold ${ehMestre ? "text-yellow-400" : "text-black"}">${msg.autor}</span>
+            </p>
+            <p class="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-relaxed break-words">${msg.mensagem}</p>
+          </div>`;
+        historico.appendChild(div);
+      });
+  
+      // Rola para o fim
+      historico.scrollTop = historico.scrollHeight;
+  
+      // Limpa ação e contexto do formulário
+      form.reset();
+      document.getElementById("dados-lista").innerHTML = "";
+  
     } catch (err) {
       console.error(err);
-      alert("Erro ao processar turno. Tente novamente.");
+      alert("Erro ao enviar turno.");
     } finally {
-      // Esconde overlay após um pequeno delay
-      setTimeout(() => {
-        overlay.classList.add("translate-x-full");
-        setTimeout(() => overlay.classList.add("hidden"), 400);
-      }, 600);
+      // Oculta o overlay de carregamento
+      overlay.classList.add("translate-x-full");
+      setTimeout(() => overlay.classList.add("hidden"), 600);
     }
   });
 
