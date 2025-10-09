@@ -615,7 +615,7 @@ def enviar_turno():
             rolagens_texto = []
             for r in rolagens:
                 # r pode ser dicionário com keys varias (personagem_id, valor, resultado, tipo, bonus)
-                pid = r.get("personagem_id", r.get("personagem") or r.get("p", "?"))
+                pid = r.get("personagem", r.get("personagem") or r.get("p", "?"))
                 valor = r.get("valor", r.get("v", "?"))
                 tipo = r.get("tipo", r.get("atributo", ""))
                 resultado = r.get("resultado", r.get("texto", r.get("resultado_texto", "")))
