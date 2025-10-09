@@ -351,136 +351,56 @@ document.addEventListener("DOMContentLoaded", () => {
   addBtn.addEventListener("click", criarRolagem);
 });
 
-// ... (código existente no DOMContentLoaded)
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("form-turno");
-    const historico = document.getElementById("turno-historico-inner");
-    const overlay = document.getElementById("sidebar-loading-overlay");
+  document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("form-turno");
+  const historico = document.getElementById("turno-historico-inner");
+  const overlay = document.getElementById("sidebar-loading-overlay");
 
-    if (!form) return;
+  if (!form) return;
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-        // 1. Coleta os dados do formulário normalmente
-        const formData = new FormData(form);
-        
-        // 2. Coleta os dados de Rolagens
-        const rolagens = [];
-        const rolagensDivs = document.querySelectorAll("#dados-lista > div");
+    // Mostra o overlay "Processando turno..."
+    overlay.classList.remove("hidden");
+    overlay.classList.remove("translate-x-full");
+    overlay.classList.add("translate-x-0");
 
-        rolagensDivs.forEach(div => {
-            const personagemSel = div.querySelector(".personagem-select");
-            const resultadoEl = div.querySelector(".resultado");
-            const tipoRolagemEl = div.querySelector(".tipo-rolagem");
+    try {
+      const formData = new FormData(form);
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: formData,
+      });
 
-            // Verifica se a rolagem foi executada (tem resultado salvo no dataset)
-            if (personagemSel && tipoRolagemEl && resultadoEl && resultadoEl.dataset.valor) {
-                const rolagem = {
-                    personagem_id: parseInt(personagemSel.value),
-                    tipo: tipoRolagemEl.value,
-                    valor: parseInt(resultadoEl.dataset.valor), // Valor final da rolagem
-                    resultado_texto: resultadoEl.dataset.texto, // Texto do resultado (Sucesso, Falha, etc.)
-                    // Você pode adicionar mais campos se precisar, como bônus, valor_base, etc.
-                };
-                rolagens.push(rolagem);
-            }
-        });
+      if (!response.ok) {
+        throw new Error("Erro ao enviar turno");
+      }
 
-        // 3. Adiciona cada rolagem como uma string JSON serializada
-        // O Flask (no `request.form.getlist("rolagem[]")`) irá ler isso como uma lista
-        rolagens.forEach(rolagem => {
-            // Adiciona como um campo 'rolagem[]' para ser lido pelo getlist() no Flask
-            formData.append("rolagem[]", JSON.stringify(rolagem));
-        });
+      const html = await response.text();
 
-        // Mostra o overlay "Processando turno..."
-        overlay.classList.remove("hidden");
-        overlay.classList.remove("translate-x-full");
-        overlay.classList.add("translate-x-0");
+      // Substitui apenas o histórico de mensagens
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const novoHistorico = doc.querySelector("#turno-historico-inner");
 
-        try {
-            const response = await fetch(form.action, {
-                method: "POST",
-                body: formData, // Envia o FormData atualizado com as rolagens
-                // Não precisa de Content-Type: application/json, pois estamos enviando FormData
-            });
+      if (novoHistorico && historico) {
+        historico.innerHTML = novoHistorico.innerHTML;
 
-            if (!response.ok) {
-                throw new Error("Erro ao enviar turno");
-            }
-
-            // Seu código de tratamento de resposta permanece o mesmo
-            const data = await response.json(); // Se a rota retornar JSON
-            
-            if (data.status === "ok" && historico) {
-                // Monta as mensagens do JSON retornado, já que o Flask retorna jsonify({"status": "ok", "mensagens": ...})
-                historico.innerHTML = data.mensagens.map(msg => {
-                    const eh_mestre = (msg.autor === "Mestre IA");
-                    // **Atenção:** Se a sua rota AJAX estiver realmente retornando o HTML completo
-                    // (caindo na exceção de `fetch(form.action)` e no `response.text()`):
-                    // Você deve remover o `if not is_ajax: flash(...) return redirect(...)` e o `if not is_ajax: return jsonify(...)`
-                    // E garantir que a rota Flask sempre retorne o HTML ou sempre retorne JSON.
-                    // Pelo seu código original, a **rota Flask retorna JSON** no final se for AJAX!
-                    // Portanto, o bloco `const html = await response.text(); ...` deve ser revisado.
-                    
-                    // Se a rota Flask está retornando JSON (como no seu código original `return jsonify(...)`):
-                    
-                    let classesContainer = eh_mestre 
-                        ? 'bg-gray-700 text-gray-100 text-left justify-start' 
-                        : 'bg-yellow-500 text-black text-right justify-end';
-                    let classesAutor = eh_mestre ? 'text-yellow-400' : 'text-black';
-                    let classesData = eh_mestre ? 'text-gray-300' : 'text-black';
-
-                    return `
-                        <div class="flex ${eh_mestre ? 'justify-start' : 'justify-end'}">
-                            <div class="max-w-[85%] sm:max-w-[75%] rounded-xl px-3 py-2 ${classesContainer}">
-                                <p class="text-sm md:text-base lg:text-lg mb-1 ${classesData}">
-                                    ${msg.criado_em} -
-                                    <span class="font-bold ${classesAutor}">
-                                        ${msg.autor}
-                                    </span>
-                                </p>
-                                <p class="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-relaxed break-words">
-                                    ${msg.mensagem}
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                
-                historico.scrollTop = historico.scrollHeight;
-                
-                // Opcional: Limpar campos de entrada e a lista de rolagens
-                form.querySelector('[name="acao"]').value = '';
-                form.querySelector('[name="contexto"]').value = '';
-                document.getElementById("dados-lista").innerHTML = ''; // Limpa as rolagens
-            } else {
-                alert(data.error || "Erro ao processar turno. Tente novamente.");
-            }
-            
-        } catch (err) {
-          console.error(err);
-          // Seu código JS originalmente esperava HTML, mas o backend retorna JSON em caso de AJAX
-          // Se o erro foi que 'response.json()' falhou (por receber HTML), é um problema de fluxo.
-          // Se for `response.ok`, mas deu erro de JSON, significa que o Flask falhou antes do jsonify final.
-          alert("Erro ao processar turno. Tente novamente. (Verifique console)");
-          
-          // Se você realmente queria que o Flask enviasse o HTML, você deve garantir que a rota Flask *sempre* faça um `render_template` ou um `redirect` mesmo com AJAX. 
-          // Mas, como está, ela deve retornar JSON para AJAX, então o bloco `try` deve usar `await response.json();`.
-        } finally {
-            // Esconde overlay após um pequeno delay
-            setTimeout(() => {
-              overlay.classList.add("translate-x-full");
-              setTimeout(() => overlay.classList.add("hidden"), 400);
-            }, 600);
-        }
-    });
-
-    // ... (o restante do código de rolagem)
-    
-    // ...
-});
+        // Rola automaticamente para o fim após a atualização
+        historico.scrollTop = historico.scrollHeight;
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao processar turno. Tente novamente.");
+    } finally {
+      // Esconde overlay após um pequeno delay
+      setTimeout(() => {
+        overlay.classList.add("translate-x-full");
+        setTimeout(() => overlay.classList.add("hidden"), 400);
+      }, 600);
+    }
+  });
 
   // Rolar para o fim ao carregar
   const scrollHistorico = document.getElementById("turno-historico-inner");
@@ -490,6 +410,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 {% endblock %}
-
-
-
