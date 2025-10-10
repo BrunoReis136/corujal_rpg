@@ -29,19 +29,15 @@
           {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
         </div>
 
-        <div class="grid grid-cols-3 gap-4">
-          {% for attr, label in [('forca','Força'),('destreza','Destreza'),('inteligencia','Inteligência')] %}
-          <div>
-            <label class="block text-sm sm:text-base font-medium text-gray-200">{{ label }}</label>
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="ajustarAtributo('{{ attr }}', -1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
-              <input id="{{ attr }}" name="{{ attr }}" type="number" value="50" min="1" max="99"
-                     class="w-16 text-center rounded bg-gray-700 text-white text-sm sm:text-base" readonly>
-              <button type="button" onclick="ajustarAtributo('{{ attr }}', 1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
-            </div>
-          </div>
-          {% endfor %}
+        <div class="flex items-center gap-2">
+          <button type="button" data-attr="{{ attr }}" data-delta="-1"
+                  class="bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
+          <input id="{{ attr }}_modal" name="{{ attr }}" type="number" value="50" min="1" max="99"
+                 class="w-16 text-center rounded bg-gray-700 text-white text-sm sm:text-base" readonly>
+          <button type="button" data-attr="{{ attr }}" data-delta="1"
+                  class="bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
         </div>
+
 
         <p class="mt-2 text-yellow-400 font-bold text-sm sm:text-base">Pontos restantes: <span id="pontos-restantes">50</span></p>
 
@@ -195,10 +191,11 @@
       {% else %}
         <p class="text-gray-300 text-sm sm:text-base">Nenhum personagem associado.</p>
       {% endif %}
-      <button onclick="document.getElementById('modal-personagem').classList.remove('hidden')" 
-              class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 mt-2 text-sm sm:text-base">
+      <button type="button" onclick="abrirModalNovo()"
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-500 mt-2 text-sm sm:text-base">
         + Novo Personagem
       </button>
+
     </details>
 
     <!-- Inventário -->
@@ -259,44 +256,70 @@
   </div>
 
 
-<!-- Modal de criação de personagem -->
-<div id="modal-personagem"
-     class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-  <div class="bg-gray-800 p-6 rounded-xl shadow-xl w-[90%] sm:w-[500px]">
-    <h2 class="text-2xl font-bold text-yellow-300 mb-4">Novo Personagem</h2>
-    <form method="POST" action="{{ url_for('add_personagem') }}" class="space-y-3">
+<!-- Modal de personagem -->
+<div id="modal-personagem" class="hidden fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+  <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md relative">
+    <h2 id="modal-titulo" class="text-xl font-bold text-yellow-300 mb-4">🧝‍♂️ Novo Personagem</h2>
+    
+    <form id="form-personagem" method="POST" action="{{ url_for('criar_personagem') }}" class="space-y-4">
       {{ personagem_form.hidden_tag() }}
+      <input type="hidden" id="personagem_id" name="personagem_id">
+
       <div>
-        {{ personagem_form.nome.label(class_="text-gray-200") }}
-        {{ personagem_form.nome(class_="w-full p-2 rounded bg-gray-700 text-white") }}
-      </div>
-      <div>
-        {{ personagem_form.classe.label(class_="text-gray-200") }}
-        {{ personagem_form.classe(class_="w-full p-2 rounded bg-gray-700 text-white") }}
-      </div>
-      <div>
-        {{ personagem_form.raca.label(class_="text-gray-200") }}
-        {{ personagem_form.raca(class_="w-full p-2 rounded bg-gray-700 text-white") }}
-      </div>
-      <div>
-        {{ personagem_form.descricao.label(class_="text-gray-200") }}
-        {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+        {{ personagem_form.nome.label(class_="text-gray-200 text-sm sm:text-base") }}
+        {{ personagem_form.nome(id="nome_modal", class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
       </div>
 
-      <div class="flex justify-end gap-3 mt-4">
+      <div>
+        {{ personagem_form.classe.label(class_="text-gray-200 text-sm sm:text-base") }}
+        {{ personagem_form.classe(id="classe_modal", class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
+      </div>
+
+      <div>
+        {{ personagem_form.raca.label(class_="text-gray-200 text-sm sm:text-base") }}
+        {{ personagem_form.raca(id="raca_modal", class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
+      </div>
+
+      <div>
+        {{ personagem_form.descricao.label(class_="text-gray-200 text-sm sm:text-base") }}
+        {{ personagem_form.descricao(id="descricao_modal", class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
+      </div>
+
+      <!-- Atributos -->
+      <div class="grid grid-cols-3 gap-4">
+        {% for attr, label in [('forca','Força'),('destreza','Destreza'),('inteligencia','Inteligência')] %}
+        <div>
+          <label class="block text-sm sm:text-base font-medium text-gray-200">{{ label }}</label>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="ajustarAtributo('{{ attr }}', -1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
+            <input id="{{ attr }}_modal" name="{{ attr }}" type="number" value="50" min="1" max="99"
+                   class="w-16 text-center rounded bg-gray-700 text-white text-sm sm:text-base" readonly>
+            <button type="button" onclick="ajustarAtributo('{{ attr }}', 1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <p class="mt-2 text-yellow-400 font-bold text-sm sm:text-base">
+        Pontos restantes: <span id="pontos-restantes-modal">50</span>
+      </p>
+
+      <div class="flex justify-between mt-4">
         <button type="button"
-                onclick="document.getElementById('modal-personagem').classList.add('hidden')"
-                class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded">
+                onclick="fecharModalPersonagem()"
+                class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500">
           Cancelar
         </button>
         <button type="submit"
-                class="bg-green-500 hover:bg-green-400 text-black font-bold px-4 py-2 rounded">
-          Criar
+                id="botao-salvar"
+                class="bg-green-500 text-black font-bold px-4 py-2 rounded hover:bg-green-400">
+          Criar personagem
         </button>
       </div>
     </form>
   </div>
 </div>
+
 
 
 {% endblock %}
@@ -493,5 +516,100 @@ document.addEventListener("DOMContentLoaded", () => {
     scrollHistorico.scrollTop = scrollHistorico.scrollHeight;
   }
 });
+
+<script>
+let holdInterval = null; // controla o incremento contínuo
+
+function ajustarAtributo(attr, delta) {
+  const input = document.getElementById(attr + '_modal');
+  let valor = parseInt(input.value) || 0;
+  let pontosRestantes = parseInt(document.getElementById('pontos-restantes-modal').innerText);
+
+  if (delta > 0 && pontosRestantes > 0 && valor < 99) {
+    valor += 1;
+    pontosRestantes -= 1;
+  } else if (delta < 0 && valor > 1) {
+    valor -= 1;
+    pontosRestantes += 1;
+  }
+
+  input.value = valor;
+  document.getElementById('pontos-restantes-modal').innerText = pontosRestantes;
+}
+
+// Função que inicia o "segurar para repetir"
+function iniciarPress(attr, delta) {
+  ajustarAtributo(attr, delta); // primeiro clique imediato
+  clearInterval(holdInterval);
+
+  // atraso inicial curto, depois repete mais rápido
+  let delay = 300;
+  holdInterval = setTimeout(function repetir() {
+    ajustarAtributo(attr, delta);
+    delay = Math.max(50, delay * 0.9); // acelera um pouco com o tempo
+    holdInterval = setTimeout(repetir, delay);
+  }, delay);
+}
+
+// Para o loop ao soltar o botão
+function pararPress() {
+  clearTimeout(holdInterval);
+  holdInterval = null;
+}
+
+// Vincula os eventos (mousedown, mouseup, touchstart, touchend)
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('button[data-attr]').forEach(btn => {
+    const attr = btn.getAttribute('data-attr');
+    const delta = parseInt(btn.getAttribute('data-delta'));
+    
+    btn.addEventListener('mousedown', () => iniciarPress(attr, delta));
+    btn.addEventListener('mouseup', pararPress);
+    btn.addEventListener('mouseleave', pararPress);
+    btn.addEventListener('touchstart', () => iniciarPress(attr, delta));
+    btn.addEventListener('touchend', pararPress);
+  });
+});
+function abrirModalNovo() {
+  document.getElementById('modal-titulo').innerText = '🧝‍♂️ Novo Personagem';
+  document.getElementById('botao-salvar').innerText = 'Criar personagem';
+  document.getElementById('form-personagem').action = "{{ url_for('criar_personagem') }}";
+  document.getElementById('personagem_id').value = '';
+
+  // resetar campos
+  ['nome_modal','classe_modal','raca_modal','descricao_modal'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  ['forca','destreza','inteligencia'].forEach(a => {
+    document.getElementById(a + '_modal').value = 50;
+  });
+  document.getElementById('pontos-restantes-modal').innerText = 50;
+
+  document.getElementById('modal-personagem').classList.remove('hidden');
+}
+
+function abrirModalEdicao(id, nome, classe, raca, descricao, forca, destreza, inteligencia) {
+  document.getElementById('modal-titulo').innerText = '✏️ Editar Personagem';
+  document.getElementById('botao-salvar').innerText = 'Salvar alterações';
+  document.getElementById('form-personagem').action = `/atualizar_personagem/${id}`;
+  document.getElementById('personagem_id').value = id;
+
+  // preencher campos
+  document.getElementById('nome_modal').value = nome;
+  document.getElementById('classe_modal').value = classe;
+  document.getElementById('raca_modal').value = raca;
+  document.getElementById('descricao_modal').value = descricao;
+  document.getElementById('forca_modal').value = forca;
+  document.getElementById('destreza_modal').value = destreza;
+  document.getElementById('inteligencia_modal').value = inteligencia;
+  document.getElementById('pontos-restantes-modal').innerText = 0;
+
+  document.getElementById('modal-personagem').classList.remove('hidden');
+}
+
+function fecharModalPersonagem() {
+  document.getElementById('modal-personagem').classList.add('hidden');
+}
 </script>
+
 {% endblock %}
