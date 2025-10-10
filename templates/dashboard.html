@@ -383,6 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (personagemSel?.value && tipo && resultadoEl?.dataset?.valor) {
           rolagens.push({
             personagem_id: personagemSel.value,
+            personagem_nome: personagemSel.selectedOptions[0].textContent.trim(),
             tipo: tipo,
             valor: resultadoEl.dataset.valor,
             texto: resultadoEl.dataset.texto,
