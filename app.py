@@ -619,7 +619,9 @@ def enviar_turno():
             personagens_map = {
                 p.id: p.nome for p in Personagem.query.filter(Personagem.id.in_(ids)).all()
             } if ids else {}
-    
+
+            print("ROLAGENS RECEBIDAS:", rolagens)
+            
             for r in rolagens:
                 pid = r.get("personagem") or r.get("p") or r.get("personagem_nome")
                 nome_personagem = (
@@ -632,7 +634,7 @@ def enviar_turno():
     
                 # ✅ Aqui trocamos o PID pelo nome
                 rolagens_texto.append(f"- {nome_personagem} | {tipo} => {valor} ({resultado})")
-    
+
             prompt_parts.append("Rolagens de dados nesta rodada:\n" + "\n".join(rolagens_texto))
     
         except Exception:
