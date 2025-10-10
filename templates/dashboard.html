@@ -242,8 +242,9 @@
       </a>
     </div>
   </div>
+</div>
 
-  <!-- Overlay lateral da sidebar -->
+<!-- Overlay lateral da sidebar -->
   <div id="sidebar-loading-overlay"
        class="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-50
               transform transition-transform duration-700 ease-out
@@ -256,7 +257,46 @@
     {% endif %}
   </div>
 
+
+<!-- Modal de criação de personagem -->
+<div id="modal-personagem"
+     class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-xl w-[90%] sm:w-[500px]">
+    <h2 class="text-2xl font-bold text-yellow-300 mb-4">Novo Personagem</h2>
+    <form method="POST" action="{{ url_for('criar_personagem') }}" class="space-y-3">
+      {{ personagem_form.hidden_tag() }}
+      <div>
+        {{ personagem_form.nome.label(class_="text-gray-200") }}
+        {{ personagem_form.nome(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+      </div>
+      <div>
+        {{ personagem_form.classe.label(class_="text-gray-200") }}
+        {{ personagem_form.classe(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+      </div>
+      <div>
+        {{ personagem_form.raca.label(class_="text-gray-200") }}
+        {{ personagem_form.raca(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+      </div>
+      <div>
+        {{ personagem_form.descricao.label(class_="text-gray-200") }}
+        {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white") }}
+      </div>
+
+      <div class="flex justify-end gap-3 mt-4">
+        <button type="button"
+                onclick="document.getElementById('modal-personagem').classList.add('hidden')"
+                class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded">
+          Cancelar
+        </button>
+        <button type="submit"
+                class="bg-green-500 hover:bg-green-400 text-black font-bold px-4 py-2 rounded">
+          Criar
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
+
 
 {% endblock %}
 
