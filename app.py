@@ -623,7 +623,7 @@ def enviar_turno():
             print("ROLAGENS RECEBIDAS:", rolagens)
             
             for r in rolagens:
-                pid = r.get("personagem") or r.get("p") or r.get("personagem_nome")
+                pid = r.get("personagem_nome") or r.get("p")
                 nome_personagem = (
                     personagens_map.get(int(pid)) if pid and str(pid).isdigit()
                     else r.get("personagem_nome") or f"Personagem {pid}"
