@@ -835,69 +835,53 @@ Crie a introdução da história desta aventura incluindo este personagem levand
 @app.route("/add_personagem", methods=["POST"])
 @login_required
 def add_personagem():
-    form = PersonagemForm()
-    if form.validate_on_submit():
-        # Captura personagem_id do hidden field para edição
-        personagem_id = request.form.get("personagem_id")
+    personagem_id = request.form.get('personagem_id')
+    nome = request.form.get('nome')
+    classe = request.form.get('classe')
+    raca = request.form.get('raca')
+    descricao = request.form.get('descricao')
+    forca = request.form.get('forca', type=int)
+    destreza = request.form.get('destreza', type=int)
+    inteligencia = request.form.get('inteligencia', type=int)
 
-        # Validar atributos
-        forca = max(1, min(99, form.forca.data))
-        destreza = max(1, min(99, form.destreza.data))
-        inteligencia = max(1, min(99, form.inteligencia.data))
-
-        total_pontos = forca + destreza + inteligencia
-        if total_pontos > 200:
-            flash("Distribuição de atributos inválida! O total de pontos deve ser até 200.", "danger")
-            return redirect(url_for("dashboard"))
-
-        atributos = {
-            "Força": forca,
-            "Destreza": destreza,
-            "Inteligência": inteligencia
-        }
-
-        if personagem_id:  # EDITAR existente
-            personagem = Personagem.query.get_or_404(personagem_id)
-            personagem.nome = form.nome.data
-            personagem.classe = form.classe.data
-            personagem.raca = form.raca.data
-            personagem.atributos = atributos
-            personagem.descricao = form.descricao.data if hasattr(form, "descricao") else None
+    if personagem_id:  # Atualização
+        personagem = Personagem.query.get(personagem_id)
+        if personagem:
+            personagem.nome = nome
+            personagem.classe = classe
+            personagem.raca = raca
+            personagem.descricao = descricao
+            personagem.atributos = {
+                "Força": forca,
+                "Destreza": destreza,
+                "Inteligência": inteligencia
+            }
             db.session.commit()
-            flash("Personagem atualizado com sucesso!", "success")
-        else:  # CRIAR novo
-            novo = Personagem(
-                nome=form.nome.data,
-                classe=form.classe.data,
-                raca=form.raca.data,
-                atributos=atributos,
-                descricao=form.descricao.data if hasattr(form, "descricao") else None,
-                ativo_na_sessao=False,  # começa fora da cena
-                usuario_id=current_user.id
-            )
-            db.session.add(novo)
-            db.session.commit()
+            flash('✅ Personagem atualizado com sucesso!', 'success')
+        else:
+            flash('⚠️ Personagem não encontrado para atualizar.', 'warning')
+    else:  # Criação
+        novo_personagem = Personagem(
+            nome=nome,
+            classe=classe,
+            raca=raca,
+            descricao=descricao,
+            atributos={
+                "Força": forca,
+                "Destreza": destreza,
+                "Inteligência": inteligencia
+            }
+        )
+        db.session.add(novo_personagem)
+        db.session.commit()
+        flash('🎉 Novo personagem criado com sucesso!', 'success')
 
-            # Criar participação na aventura ativa
-            aventura_id = session.get("aventura_id")
-            if aventura_id:
-                participacao = Participacao(
-                    usuario_id=current_user.id,
-                    personagem_id=novo.id,
-                    aventura_id=aventura_id
-                )
-                db.session.add(participacao)
-                db.session.commit()
-
-            flash("Novo personagem criado e vinculado à aventura!", "success")
-    else:
-        flash("Erro ao criar/editar personagem. Verifique os dados.", "danger")
-
-    return redirect(url_for("dashboard"))
+    return redirect(url_for('dashboard'))  # ajuste conforme sua página de retorno
 
 
 
 
+'''
 @app.route("/aumentar_tamanho_autor")
 def aumentar_tamanho_autor():
     try:
@@ -910,6 +894,7 @@ def aumentar_tamanho_autor():
     except Exception as e:
         db.session.rollback()
         return f"Erro: {e}"
+'''
 
 
 
