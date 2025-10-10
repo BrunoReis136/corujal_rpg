@@ -609,18 +609,32 @@ def enviar_turno():
 
     prompt_parts.append(f"Ação de {personagem.nome}:\n{form.acao.data}")
 
-    # anexar rolagens textualmente, se houver
+   # anexar rolagens textualmente, se houver
     if rolagens:
         try:
             rolagens_texto = []
+    
+            # opcional: criar mapa se quiser resolver IDs em lote
+            ids = [int(r["personagem"]) for r in rolagens if r.get("personagem") and str(r.get("personagem")).isdigit()]
+            personagens_map = {
+                p.id: p.nome for p in Personagem.query.filter(Personagem.id.in_(ids)).all()
+            } if ids else {}
+    
             for r in rolagens:
-                # r pode ser dicionário com keys varias (personagem_id, valor, resultado, tipo, bonus)
-                pid = r.get("personagem", r.get("personagem") or r.get("p", "?"))
+                pid = r.get("personagem") or r.get("p") or r.get("personagem_nome")
+                nome_personagem = (
+                    personagens_map.get(int(pid)) if pid and str(pid).isdigit()
+                    else r.get("personagem_nome") or f"Personagem {pid}"
+                )
                 valor = r.get("valor", r.get("v", "?"))
                 tipo = r.get("tipo", r.get("atributo", ""))
                 resultado = r.get("resultado", r.get("texto", r.get("resultado_texto", "")))
-                rolagens_texto.append(f"- Personagem {pid} | {tipo} => {valor} ({resultado})")
+    
+                # ✅ Aqui trocamos o PID pelo nome
+                rolagens_texto.append(f"- {nome_personagem} | {tipo} => {valor} ({resultado})")
+    
             prompt_parts.append("Rolagens de dados nesta rodada:\n" + "\n".join(rolagens_texto))
+    
         except Exception:
             current_app.logger.exception("Erro formatando rolagens para prompt")
 
