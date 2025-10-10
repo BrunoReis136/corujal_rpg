@@ -591,7 +591,7 @@ function abrirModalNovo() {
 function abrirModalEdicao(id, nome, classe, raca, descricao, forca, destreza, inteligencia) {
   document.getElementById('modal-titulo').innerText = '✏️ Editar Personagem';
   document.getElementById('botao-salvar').innerText = 'Salvar alterações';
-  document.getElementById('form-personagem').action = `/atualizar_personagem/${id}`;
+  document.getElementById('form-personagem').action = "{{ url_for('add_personagem') }}";
   document.getElementById('personagem_id').value = id;
 
   // preencher campos
