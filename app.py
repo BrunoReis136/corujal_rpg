@@ -843,7 +843,7 @@ def add_personagem():
     except ValueError:
         personagem_id = None
 
-    # pega valores (seja de form ou request)
+    # pega valores (seja do form ou do request)
     def get_int(name, default=50):
         try:
             return int(request.form.get(name, getattr(form, name).data or default))
@@ -861,6 +861,7 @@ def add_personagem():
     atributos = {"Força": forca, "Destreza": destreza, "Inteligência": inteligencia}
 
     if personagem_id:
+        # EDITAR PERSONAGEM EXISTENTE
         personagem = Personagem.query.get_or_404(personagem_id)
         if personagem.usuario_id != current_user.id:
             flash("Você não tem permissão para editar esse personagem.", "danger")
@@ -873,7 +874,9 @@ def add_personagem():
         personagem.atributos = atributos
         db.session.commit()
         flash("Personagem atualizado com sucesso!", "success")
+
     else:
+        # CRIAR NOVO PERSONAGEM
         novo = Personagem(
             nome=request.form.get('nome', form.nome.data),
             classe=request.form.get('classe', form.classe.data),
@@ -885,7 +888,25 @@ def add_personagem():
         )
         db.session.add(novo)
         db.session.commit()
-        # vinculacoes de participacao como antes...
+
+        # 🔹 Vincular o personagem à aventura ativa
+        aventura_id = session.get("aventura_id")
+        if aventura_id:
+            participacao_existente = Participacao.query.filter_by(
+                usuario_id=current_user.id,
+                personagem_id=novo.id,
+                aventura_id=aventura_id
+            ).first()
+
+            if not participacao_existente:
+                participacao = Participacao(
+                    usuario_id=current_user.id,
+                    personagem_id=novo.id,
+                    aventura_id=aventura_id
+                )
+                db.session.add(participacao)
+                db.session.commit()
+
         flash("Novo personagem criado e vinculado à aventura!", "success")
 
     return redirect(url_for("dashboard"))
