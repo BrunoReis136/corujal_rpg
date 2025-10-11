@@ -263,7 +263,7 @@
     
     <form id="form-personagem" method="POST" action="{{ url_for('add_personagem') }}" class="space-y-4">
       {{ personagem_form.hidden_tag() }}
-      <input type="hidden" id="personagem_id" name="personagem_id">
+      <input type="hidden" id="personagem_modal_id" name="personagem_id">
 
       <div>
         {{ personagem_form.nome.label(class_="text-gray-200 text-sm sm:text-base") }}
@@ -574,7 +574,7 @@ function abrirModalNovo() {
   document.getElementById('modal-titulo').innerText = '🧝‍♂️ Novo Personagem';
   document.getElementById('botao-salvar').innerText = 'Criar personagem';
   document.getElementById('form-personagem').action = "{{ url_for('add_personagem') }}";
-  document.getElementById('personagem_id').value = '';
+  document.getElementById('personagem_modal_id').value = '';
 
   // resetar campos
   ['nome_modal','classe_modal','raca_modal','descricao_modal'].forEach(id => {
@@ -592,7 +592,7 @@ function abrirModalEdicao(id, nome, classe, raca, descricao, forca, destreza, in
   document.getElementById('modal-titulo').innerText = '✏️ Editar Personagem';
   document.getElementById('botao-salvar').innerText = 'Salvar alterações';
   document.getElementById('form-personagem').action = "{{ url_for('add_personagem') }}";
-  document.getElementById('personagem_id').value = id;
+  document.getElementById('personagem_modal_id').value = id;
 
   // preencher campos
   document.getElementById('nome_modal').value = nome;
