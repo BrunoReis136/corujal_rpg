@@ -35,10 +35,10 @@
           <div>
             <label class="block text-sm sm:text-base font-medium text-gray-200">{{ label }}</label>
             <div class="flex items-center gap-2">
-              <button type="button" onclick="ajustarAtributo('{{ attr }}', -1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
+              <button type="button" data-attr="{{ attr }}" data-delta="-1" class="bg-gray-700 px-2 rounded text-sm sm:text-base">−</button>
               <input id="{{ attr }}_modal" name="{{ attr }}" type="number" value="50" min="1" max="99"
                      class="w-16 text-center rounded bg-gray-700 text-white text-sm sm:text-base" readonly>
-              <button type="button" onclick="ajustarAtributo('{{ attr }}', 1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
+              <button type="button" data-attr="{{ attr }}" data-delta="1" class="bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
             </div>
           </div>
           {% endfor %}
@@ -527,7 +527,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-let holdInterval = null; // controla o incremento contínuo
+let holdTimeout = null;
+let holdActive = false;
 
 function ajustarAtributo(attr, delta) {
   const input = document.getElementById(attr + '_modal');
@@ -546,39 +547,45 @@ function ajustarAtributo(attr, delta) {
   document.getElementById('pontos-restantes-modal').innerText = pontosRestantes;
 }
 
-// Função que inicia o "segurar para repetir"
 function iniciarPress(attr, delta) {
-  ajustarAtributo(attr, delta); // primeiro clique imediato
-  clearInterval(holdInterval);
+  ajustarAtributo(attr, delta); // aplica imediatamente
+  holdActive = true;
 
-  // atraso inicial curto, depois repete mais rápido
-  let delay = 300;
-  holdInterval = setTimeout(function repetir() {
+  let delay = 300; // início mais lento
+
+  function repetir() {
+    if (!holdActive) return;
     ajustarAtributo(attr, delta);
-    delay = Math.max(50, delay * 0.9); // acelera um pouco com o tempo
-    holdInterval = setTimeout(repetir, delay);
-  }, delay);
+    delay = Math.max(50, delay * 0.9); // acelera gradualmente
+    holdTimeout = setTimeout(repetir, delay);
+  }
+
+  holdTimeout = setTimeout(repetir, delay);
 }
 
-// Para o loop ao soltar o botão
 function pararPress() {
-  clearTimeout(holdInterval);
-  holdInterval = null;
+  holdActive = false;
+  clearTimeout(holdTimeout);
 }
 
-// Vincula os eventos (mousedown, mouseup, touchstart, touchend)
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('button[data-attr]').forEach(btn => {
-    const attr = btn.getAttribute('data-attr');
-    const delta = parseInt(btn.getAttribute('data-delta'));
-    
+    const attr = btn.dataset.attr;
+    const delta = parseInt(btn.dataset.delta);
+
     btn.addEventListener('mousedown', () => iniciarPress(attr, delta));
     btn.addEventListener('mouseup', pararPress);
     btn.addEventListener('mouseleave', pararPress);
-    btn.addEventListener('touchstart', () => iniciarPress(attr, delta));
+
+    btn.addEventListener('touchstart', e => {
+      e.preventDefault(); // evita clique duplo em mobile
+      iniciarPress(attr, delta);
+    });
     btn.addEventListener('touchend', pararPress);
   });
 });
+
+  
 function abrirModalNovo() {
   document.getElementById('modal-titulo').innerText = '🧝‍♂️ Novo Personagem';
   document.getElementById('botao-salvar').innerText = 'Criar personagem';
