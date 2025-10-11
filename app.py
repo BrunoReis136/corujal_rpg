@@ -835,48 +835,60 @@ Crie a introdução da história desta aventura incluindo este personagem levand
 @app.route("/add_personagem", methods=["POST"])
 @login_required
 def add_personagem():
-    personagem_id = request.form.get('personagem_id')
-    nome = request.form.get('nome')
-    classe = request.form.get('classe')
-    raca = request.form.get('raca')
-    descricao = request.form.get('descricao')
-    forca = request.form.get('forca', type=int)
-    destreza = request.form.get('destreza', type=int)
-    inteligencia = request.form.get('inteligencia', type=int)
+    form = PersonagemForm()
+    personagem_id_raw = request.form.get("personagem_id")
+    personagem_id = None
+    try:
+        personagem_id = int(personagem_id_raw) if personagem_id_raw else None
+    except ValueError:
+        personagem_id = None
 
-    if personagem_id:  # Atualização
-        personagem = Personagem.query.get(personagem_id)
-        if personagem:
-            personagem.nome = nome
-            personagem.classe = classe
-            personagem.raca = raca
-            personagem.descricao = descricao
-            personagem.atributos = {
-                "Força": forca,
-                "Destreza": destreza,
-                "Inteligência": inteligencia
-            }
-            db.session.commit()
-            flash('✅ Personagem atualizado com sucesso!', 'success')
-        else:
-            flash('⚠️ Personagem não encontrado para atualizar.', 'warning')
-    else:  # Criação
-        novo_personagem = Personagem(
-            nome=nome,
-            classe=classe,
-            raca=raca,
-            descricao=descricao,
-            atributos={
-                "Força": forca,
-                "Destreza": destreza,
-                "Inteligência": inteligencia
-            }
-        )
-        db.session.add(novo_personagem)
+    # pega valores (seja de form ou request)
+    def get_int(name, default=50):
+        try:
+            return int(request.form.get(name, getattr(form, name).data or default))
+        except Exception:
+            return default
+
+    forca = max(1, min(99, get_int('forca')))
+    destreza = max(1, min(99, get_int('destreza')))
+    inteligencia = max(1, min(99, get_int('inteligencia')))
+
+    if (forca + destreza + inteligencia) > 200:
+        flash("Distribuição de atributos inválida! O total de pontos deve ser até 200.", "danger")
+        return redirect(url_for("dashboard"))
+
+    atributos = {"Força": forca, "Destreza": destreza, "Inteligência": inteligencia}
+
+    if personagem_id:
+        personagem = Personagem.query.get_or_404(personagem_id)
+        if personagem.usuario_id != current_user.id:
+            flash("Você não tem permissão para editar esse personagem.", "danger")
+            return redirect(url_for("dashboard"))
+
+        personagem.nome = request.form.get('nome', form.nome.data)
+        personagem.classe = request.form.get('classe', form.classe.data)
+        personagem.raca = request.form.get('raca', form.raca.data)
+        personagem.descricao = request.form.get('descricao', form.descricao.data)
+        personagem.atributos = atributos
         db.session.commit()
-        flash('🎉 Novo personagem criado com sucesso!', 'success')
+        flash("Personagem atualizado com sucesso!", "success")
+    else:
+        novo = Personagem(
+            nome=request.form.get('nome', form.nome.data),
+            classe=request.form.get('classe', form.classe.data),
+            raca=request.form.get('raca', form.raca.data),
+            atributos=atributos,
+            descricao=request.form.get('descricao', form.descricao.data),
+            ativo_na_sessao=False,
+            usuario_id=current_user.id
+        )
+        db.session.add(novo)
+        db.session.commit()
+        # vinculacoes de participacao como antes...
+        flash("Novo personagem criado e vinculado à aventura!", "success")
 
-    return redirect(url_for('dashboard'))  # ajuste conforme sua página de retorno
+    return redirect(url_for("dashboard"))
 
 
 
