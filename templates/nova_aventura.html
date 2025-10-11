@@ -43,28 +43,43 @@
         <label class="block mb-2 text-yellow-300 text-lg font-bold">🎲 Regras de Rolagem de Dados</label>
       
         <div class="flex flex-col gap-3">
+          <!-- Erro Crítico -->
           <div>
             <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
               💀 Erro Crítico (máx.)
             </label>
-            {{ form.erro_critico_max(class="w-full p-2 rounded-lg bg-gray-700 text-white", id="erro_critico_max") }}
+            <div class="flex items-center gap-2">
+              <button type="button" class="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500" data-target="erro_critico_max" data-action="decrease">−</button>
+              {{ form.erro_critico_max(class="w-full p-2 rounded-lg bg-gray-700 text-white text-center", id="erro_critico_max", type="number", min="1", max="100") }}
+              <button type="button" class="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500" data-target="erro_critico_max" data-action="increase">+</button>
+            </div>
           </div>
       
+          <!-- Erro Normal -->
           <div>
             <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
               ❌ Erro Normal (máx.)
             </label>
-            {{ form.erro_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white", id="erro_normal_max") }}
+            <div class="flex items-center gap-2">
+              <button type="button" class="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500" data-target="erro_normal_max" data-action="decrease">−</button>
+              {{ form.erro_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white text-center", id="erro_normal_max", type="number", min="1", max="100") }}
+              <button type="button" class="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500" data-target="erro_normal_max" data-action="increase">+</button>
+            </div>
           </div>
       
+          <!-- Acerto Normal -->
           <div>
             <label class="block text-gray-300 text-sm mb-1 flex items-center gap-2">
               ✅ Acerto Normal (máx.)
             </label>
-            {{ form.acerto_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white", id="acerto_normal_max") }}
+            <div class="flex items-center gap-2">
+              <button type="button" class="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500" data-target="acerto_normal_max" data-action="decrease">−</button>
+              {{ form.acerto_normal_max(class="w-full p-2 rounded-lg bg-gray-700 text-white text-center", id="acerto_normal_max", type="number", min="1", max="100") }}
+              <button type="button" class="px-2 py-1 bg-gray-600 text-white rounded hover:bg-gray-500" data-target="acerto_normal_max" data-action="increase">+</button>
+            </div>
           </div>
       
-          <!-- campo oculto -->
+          <!-- Campo oculto -->
           {{ form.acerto_critico_min(type="hidden", id="acerto_critico_min") }}
         </div>
       
@@ -94,6 +109,7 @@
       </div>
 
 
+
       <!-- botões -->
       <div class="flex gap-4">
         {{ form.submit(class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg") }}
@@ -108,6 +124,7 @@
 {% endblock %}
 
 {% block scripts %}
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const erroCritico = document.getElementById("erro_critico_max");
@@ -124,20 +141,19 @@ document.addEventListener("DOMContentLoaded", () => {
     let eCrit = parseInt(erroCritico.value) || 15;
     let eNorm = parseInt(erroNormal.value) || (eCrit + 30);
     let aNorm = parseInt(acertoNormal.value) || (eNorm + 35);
-  
+
     // Garantir ordem lógica
     if (eNorm <= eCrit) eNorm = eCrit + 1;
     if (aNorm <= eNorm) aNorm = eNorm + 1;
     if (aNorm > 99) aNorm = 99;
-  
-    // acerto crítico começa logo após acerto normal
+
     const aCrit = 100;
-  
+
     erroCritico.value = eCrit;
     erroNormal.value = eNorm;
     acertoNormal.value = aNorm;
-    acertoCritico.value = aCrit; // hidden input
-  
+    acertoCritico.value = aCrit;
+
     atualizarFaixa(eCrit, eNorm, aNorm, aCrit);
   }
 
@@ -157,11 +173,27 @@ document.addEventListener("DOMContentLoaded", () => {
     barAC.style.width = `${wAC}%`;
   }
 
-  [erroCritico, erroNormal, acertoNormal, acertoCritico].forEach(el => {
+  // Botões de +/-
+  document.querySelectorAll("button[data-target]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = document.getElementById(btn.dataset.target);
+      let value = parseInt(target.value) || 0;
+      const action = btn.dataset.action;
+
+      if (action === "increase" && value < 100) value++;
+      if (action === "decrease" && value > 1) value--;
+
+      target.value = value;
+      ajustarValores();
+    });
+  });
+
+  [erroCritico, erroNormal, acertoNormal].forEach(el => {
     el.addEventListener("input", ajustarValores);
   });
 
   ajustarValores(); // inicial
 });
 </script>
+
 {% endblock %}
