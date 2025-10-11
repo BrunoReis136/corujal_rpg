@@ -261,7 +261,7 @@
   <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md relative">
     <h2 id="modal-titulo" class="text-xl font-bold text-yellow-300 mb-4">🧝‍♂️ Novo Personagem</h2>
     
-    <form id="form-personagem" method="POST" action="{{ url_for('criar_personagem') }}" class="space-y-4">
+    <form id="form-personagem" method="POST" action="{{ url_for('add_personagem') }}" class="space-y-4">
       {{ personagem_form.hidden_tag() }}
       <input type="hidden" id="personagem_id" name="personagem_id">
 
@@ -573,7 +573,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function abrirModalNovo() {
   document.getElementById('modal-titulo').innerText = '🧝‍♂️ Novo Personagem';
   document.getElementById('botao-salvar').innerText = 'Criar personagem';
-  document.getElementById('form-personagem').action = "{{ url_for('criar_personagem') }}";
+  document.getElementById('form-personagem').action = "{{ url_for('add_personagem') }}";
   document.getElementById('personagem_id').value = '';
 
   // resetar campos
