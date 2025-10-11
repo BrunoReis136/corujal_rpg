@@ -29,19 +29,25 @@
           {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
         </div>
 
+        <!-- Atributos -->
         <div class="grid grid-cols-3 gap-4">
           {% for attr, label in [('forca','Força'),('destreza','Destreza'),('inteligencia','Inteligência')] %}
           <div>
             <label class="block text-sm sm:text-base font-medium text-gray-200">{{ label }}</label>
             <div class="flex items-center gap-2">
-              <button type="button" data-attr="{{ attr }}" data-delta="-1" class="btn-atributo bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
+              <button type="button" onclick="ajustarAtributo('{{ attr }}', -1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
               <input id="{{ attr }}_modal" name="{{ attr }}" type="number" value="50" min="1" max="99"
                      class="w-16 text-center rounded bg-gray-700 text-white text-sm sm:text-base" readonly>
-              <button type="button" data-attr="{{ attr }}" data-delta="1" class="btn-atributo bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
+              <button type="button" onclick="ajustarAtributo('{{ attr }}', 1)" class="bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
             </div>
           </div>
           {% endfor %}
         </div>
+  
+        <p class="mt-2 text-yellow-400 font-bold text-sm sm:text-base">
+          Pontos restantes: <span id="pontos-restantes-modal">50</span>
+        </p>
+
         
         <p class="mt-2 text-yellow-400 font-bold text-sm sm:text-base">Pontos restantes: <span id="pontos-restantes">50</span></p>
 
