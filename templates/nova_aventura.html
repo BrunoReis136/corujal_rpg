@@ -142,7 +142,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let eNorm = parseInt(erroNormal.value) || (eCrit + 30);
     let aNorm = parseInt(acertoNormal.value) || (eNorm + 35);
 
-    // Garantir ordem lógica
     if (eNorm <= eCrit) eNorm = eCrit + 1;
     if (aNorm <= eNorm) aNorm = eNorm + 1;
     if (aNorm > 99) aNorm = 99;
@@ -173,19 +172,35 @@ document.addEventListener("DOMContentLoaded", () => {
     barAC.style.width = `${wAC}%`;
   }
 
-  // Botões de +/-
+  function alterarValor(target, action) {
+    const el = document.getElementById(target);
+    let value = parseInt(el.value) || 0;
+
+    if (action === "increase" && value < 100) value++;
+    if (action === "decrease" && value > 1) value--;
+
+    el.value = value;
+    ajustarValores();
+  }
+
+  // Botões +/− com suporte a clique e segurar
   document.querySelectorAll("button[data-target]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const target = document.getElementById(btn.dataset.target);
-      let value = parseInt(target.value) || 0;
-      const action = btn.dataset.action;
+    let interval;
+    const target = btn.dataset.target;
+    const action = btn.dataset.action;
 
-      if (action === "increase" && value < 100) value++;
-      if (action === "decrease" && value > 1) value--;
+    const start = () => {
+      alterarValor(target, action);
+      interval = setInterval(() => alterarValor(target, action), 120); // repete a cada 120ms
+    };
+    const stop = () => clearInterval(interval);
 
-      target.value = value;
-      ajustarValores();
-    });
+    btn.addEventListener("mousedown", start);
+    btn.addEventListener("touchstart", start);
+
+    btn.addEventListener("mouseup", stop);
+    btn.addEventListener("mouseleave", stop);
+    btn.addEventListener("touchend", stop);
   });
 
   [erroCritico, erroNormal, acertoNormal].forEach(el => {
@@ -195,5 +210,6 @@ document.addEventListener("DOMContentLoaded", () => {
   ajustarValores(); // inicial
 });
 </script>
+
 
 {% endblock %}
