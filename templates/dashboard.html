@@ -30,14 +30,11 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <button type="button" data-attr="{{ attr }}" data-delta="-1"
-                  class="bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
+          <button type="button" data-attr="{{ attr }}" data-delta="-1" class="btn-atributo bg-gray-700 px-2 rounded text-sm sm:text-base">-</button>
           <input id="{{ attr }}_modal" name="{{ attr }}" type="number" value="50" min="1" max="99"
                  class="w-16 text-center rounded bg-gray-700 text-white text-sm sm:text-base" readonly>
-          <button type="button" data-attr="{{ attr }}" data-delta="1"
-                  class="bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
+          <button type="button" data-attr="{{ attr }}" data-delta="1" class="btn-atributo bg-gray-700 px-2 rounded text-sm sm:text-base">+</button>
         </div>
-
 
         <p class="mt-2 text-yellow-400 font-bold text-sm sm:text-base">Pontos restantes: <span id="pontos-restantes">50</span></p>
 
@@ -165,17 +162,17 @@
             <p><strong>Descrição:</strong> {{ p.descricao or '---' }}</p>
             <div class="mt-2 flex gap-2">
               <button type="button"
-                      onclick="abrirModalEdicao(
-                        {{ p.id }},
-                        '{{ p.nome }}',
-                        '{{ p.classe }}',
-                        '{{ p.raca }}',
-                        '{{ p.descricao|default('') }}',
-                        {{ p.atributos['Força'] }},
-                        {{ p.atributos['Destreza'] }},
-                        {{ p.atributos['Inteligência'] }}
-                      )"
-                      class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500 text-sm sm:text-base">
+                onclick="abrirModalEdicao(
+                  {{ p.id }},
+                  {{ p.nome|tojson }},
+                  {{ p.classe|tojson }},
+                  {{ p.raca|tojson }},
+                  {{ (p.descricao or '')|tojson }},
+                  {{ p.atributos['Força'] }},
+                  {{ p.atributos['Destreza'] }},
+                  {{ p.atributos['Inteligência'] }}
+                )"
+                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-500 text-sm sm:text-base">
                 Alterar
               </button>
               <form method="POST" action="{{ url_for('excluir_personagem', personagem_id=p.id) }}"
@@ -578,12 +575,17 @@ function abrirModalNovo() {
 
   // resetar campos
   ['nome_modal','classe_modal','raca_modal','descricao_modal'].forEach(id => {
-    document.getElementById(id).value = '';
+    const el = document.getElementById(id);
+    if (el) el.value = '';
   });
   ['forca','destreza','inteligencia'].forEach(a => {
-    document.getElementById(a + '_modal').value = 50;
+    const el = document.getElementById(a + '_modal');
+    if (el) el.value = 50;
   });
-  document.getElementById('pontos-restantes-modal').innerText = 50;
+
+  // recalcula pontos restantes (limite total = 200)
+  const pontosRest = 200 - (50 + 50 + 50);
+  document.getElementById('pontos-restantes-modal').innerText = pontosRest;
 
   document.getElementById('modal-personagem').classList.remove('hidden');
 }
@@ -591,22 +593,25 @@ function abrirModalNovo() {
 function abrirModalEdicao(id, nome, classe, raca, descricao, forca, destreza, inteligencia) {
   document.getElementById('modal-titulo').innerText = '✏️ Editar Personagem';
   document.getElementById('botao-salvar').innerText = 'Salvar alterações';
+  // manter sempre a mesma rota add_personagem (o backend decide criar/editar via personagem_id)
   document.getElementById('form-personagem').action = "{{ url_for('add_personagem') }}";
   document.getElementById('personagem_modal_id').value = id;
 
-  // preencher campos
-  document.getElementById('nome_modal').value = nome;
-  document.getElementById('classe_modal').value = classe;
-  document.getElementById('raca_modal').value = raca;
-  document.getElementById('descricao_modal').value = descricao;
-  document.getElementById('forca_modal').value = forca;
-  document.getElementById('destreza_modal').value = destreza;
-  document.getElementById('inteligencia_modal').value = inteligencia;
-  document.getElementById('pontos-restantes-modal').innerText = 0;
+  // preencher campos (garanta que os elementos existam)
+  document.getElementById('nome_modal').value = nome || '';
+  document.getElementById('classe_modal').value = classe || '';
+  document.getElementById('raca_modal').value = raca || '';
+  document.getElementById('descricao_modal').value = descricao || '';
+  document.getElementById('forca_modal').value = forca ?? 50;
+  document.getElementById('destreza_modal').value = destreza ?? 50;
+  document.getElementById('inteligencia_modal').value = inteligencia ?? 50;
+
+  // recalcula pontos restantes
+  const pontosRest = Math.max(0, 200 - (Number(forca) + Number(destreza) + Number(inteligencia)));
+  document.getElementById('pontos-restantes-modal').innerText = pontosRest;
 
   document.getElementById('modal-personagem').classList.remove('hidden');
 }
-
 function fecharModalPersonagem() {
   document.getElementById('modal-personagem').classList.add('hidden');
 }
