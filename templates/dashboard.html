@@ -18,15 +18,15 @@
         </div>
         <div>
           {{ personagem_form.classe.label(class_="text-gray-200 text-sm sm:text-base") }}
-          {{ personagem_form.classe(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
+          {{ personagem_form.classe(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base", placeholder="Ex: Guerreiro, Soldado, Malkavian, Mago...") }}
         </div>
         <div>
           {{ personagem_form.raca.label(class_="text-gray-200 text-sm sm:text-base") }}
-          {{ personagem_form.raca(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
+          {{ personagem_form.raca(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base", placeholder="Ex: Humano, Elfo, Vampiro, Anão...") }}
         </div>
         <div>
           {{ personagem_form.descricao.label(class_="text-gray-200 text-sm sm:text-base") }}
-          {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
+          {{ personagem_form.descricao(class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base", placeholder="Ex:Homem Alto, Magro, Olhos Negros, Expressão Séria, Forte...") }}
         </div>
 
         <!-- Atributos -->
@@ -281,17 +281,17 @@
 
       <div>
         {{ personagem_form.classe.label(class_="text-gray-200 text-sm sm:text-base") }}
-        {{ personagem_form.classe(id="classe_modal", class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
+        {{ personagem_form.classe(id="classe_modal", class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base", placeholder="Ex: Guerreiro, Soldado, Malkavian, Mago...") }}
       </div>
 
       <div>
         {{ personagem_form.raca.label(class_="text-gray-200 text-sm sm:text-base") }}
-        {{ personagem_form.raca(id="raca_modal", class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
+        {{ personagem_form.raca(id="raca_modal", class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base", placeholder="Ex: Humano, Elfo, Vampiro, Anão...") }}
       </div>
 
       <div>
         {{ personagem_form.descricao.label(class_="text-gray-200 text-sm sm:text-base") }}
-        {{ personagem_form.descricao(id="descricao_modal", class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base") }}
+        {{ personagem_form.descricao(id="descricao_modal", class_="w-full p-2 rounded bg-gray-700 text-white text-sm sm:text-base", placeholder="Ex:Homem Alto, Magro, Olhos Negros, Expressão Séria, Forte...") }}
       </div>
 
       <!-- Atributos -->
