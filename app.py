@@ -769,7 +769,8 @@ def criar_personagem():
         classe=form.classe.data,
         raca=form.raca.data,
         atributos=atributos,
-        usuario_id=current_user.id
+        usuario_id=current_user.id,
+        descricao=form.descricao.data
     )
     db.session.add(novo_personagem)
     db.session.commit()
